@@ -1,7 +1,7 @@
 import { View, Text, TouchableOpacity, ActivityIndicator, TextInput, KeyboardAvoidingView, Platform, Alert, ScrollView, Linking, Dimensions } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
-const { height: SCREEN_HEIGHT } = Dimensions.get("window");
+const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get("window");
 import SafeScreen from "@/components/SafeScreen";
 import { useState } from "react";
 import { useApi } from "@/lib/api";
@@ -21,6 +21,46 @@ try {
 }
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
+import Svg, { Path, Defs, RadialGradient, Stop, LinearGradient as SvgLinearGradient } from 'react-native-svg';
+
+const BackgroundDecorations = ({ accent }: { accent: "purple" | "green" }) => {
+  const accentColor = accent === "purple" ? "#8B5CF6" : "#10B981";
+  const waveGradColorStart = accent === "purple" ? "#FAF8FF" : "#F4FDF9";
+  const waveGradColorEnd = accent === "purple" ? "#F5F2FF" : "#EAFDF4";
+  return (
+    <View style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, zIndex: 0 }} pointerEvents="none">
+      <Svg height="100%" width="100%">
+        <Defs>
+          {/* Soft Glowing Circle Gradients */}
+          <RadialGradient id="glowTopLeft" cx="10%" cy="10%" rx="45%" ry="45%">
+            <Stop offset="0%" stopColor={accentColor} stopOpacity="0.2" />
+            <Stop offset="100%" stopColor={accentColor} stopOpacity="0" />
+          </RadialGradient>
+          <RadialGradient id="glowMiddleRight" cx="90%" cy="40%" rx="40%" ry="40%">
+            <Stop offset="0%" stopColor="#818CF8" stopOpacity="0.15" />
+            <Stop offset="100%" stopColor="#818CF8" stopOpacity="0" />
+          </RadialGradient>
+          
+          {/* Bottom Wavy Gradient */}
+          <SvgLinearGradient id="waveGrad" x1="0" y1="0" x2="0" y2="1">
+            <Stop offset="0%" stopColor={waveGradColorStart} stopOpacity="0.95" />
+            <Stop offset="100%" stopColor={waveGradColorEnd} stopOpacity="1" />
+          </SvgLinearGradient>
+        </Defs>
+        
+        {/* Fill glow areas */}
+        <Path d={`M0,0 L${SCREEN_WIDTH},0 L${SCREEN_WIDTH},${SCREEN_HEIGHT} L0,${SCREEN_HEIGHT} Z`} fill="url(#glowTopLeft)" />
+        <Path d={`M0,0 L${SCREEN_WIDTH},0 L${SCREEN_WIDTH},${SCREEN_HEIGHT} L0,${SCREEN_HEIGHT} Z`} fill="url(#glowMiddleRight)" />
+        
+        {/* Wave Path */}
+        <Path 
+          fill="url(#waveGrad)" 
+          d={`M0,${SCREEN_HEIGHT * 0.65} C${SCREEN_WIDTH * 0.35},${SCREEN_HEIGHT * 0.75} ${SCREEN_WIDTH * 0.65},${SCREEN_HEIGHT * 0.58} ${SCREEN_WIDTH},${SCREEN_HEIGHT * 0.68} L${SCREEN_WIDTH},${SCREEN_HEIGHT} L0,${SCREEN_HEIGHT} Z`} 
+        />
+      </Svg>
+    </View>
+  );
+};
 
 const AuthScreen = () => {
   const insets = useSafeAreaInsets();
@@ -118,6 +158,7 @@ const AuthScreen = () => {
 
   return (
     <SafeScreen>
+      <BackgroundDecorations accent={mode === "register" && viewMode === "auth" ? "green" : "purple"} />
       <KeyboardAvoidingView 
         behavior={Platform.OS === "ios" ? "padding" : "height"} 
         className="flex-1"
@@ -130,7 +171,7 @@ const AuthScreen = () => {
         >
           {viewMode === "welcome" ? (
             // ================= 1. WELCOME SCREEN =================
-            <View className="flex-1 bg-background px-6 pt-2 pb-10 justify-between">
+            <View className="flex-1 bg-transparent px-6 pt-2 pb-10 justify-between">
               
               {/* Top Bar with Logo & Moon icon */}
               <View className="w-full flex-row justify-between items-center px-1">
@@ -280,141 +321,167 @@ const AuthScreen = () => {
           ) : (
             // ================= 2. REGISTER / LOGIN FORM SCREEN =================
             <View 
-              className="flex-1 bg-background px-6 pt-6 justify-between"
+              className="flex-1 bg-transparent px-6 pt-4 justify-between relative overflow-hidden"
               style={{ paddingBottom: Math.max(insets.bottom + 12, 32) }}
             >
-              {/* Top Bar with circular Back Button */}
-              <View className="w-full flex-row items-center justify-between mt-4 mb-4 relative h-10">
+              {/* Floating background decorations */}
+              <View className="absolute inset-0 opacity-10 justify-around items-center pointer-events-none">
+                {mode === "register" ? (
+                  <>
+                    <View className="flex-row justify-between w-full px-8 mt-4">
+                      <Text className="text-[#10B981] text-2xl font-extrabold">3</Text>
+                      <Text className="text-[#10B981] text-xl font-bold">÷</Text>
+                    </View>
+                    <View className="flex-row justify-between w-full px-12 mb-4">
+                      <Text className="text-[#10B981] text-2xl font-extrabold">3</Text>
+                      <Text className="text-[#10B981] text-xl font-bold">%</Text>
+                    </View>
+                  </>
+                ) : (
+                  <>
+                    <View className="flex-row justify-between w-full px-8">
+                      <Text className="text-primary text-xl font-bold">+</Text>
+                      <Text className="text-primary text-2xl font-bold">÷</Text>
+                    </View>
+                    <View className="flex-row justify-between w-full px-12">
+                      <Text className="text-primary text-xl font-bold">-</Text>
+                      <Text className="text-primary text-2xl font-bold">×</Text>
+                    </View>
+                  </>
+                )}
+              </View>
+
+              {/* Top Bar with Back Button */}
+              <View className="w-full flex-row items-center justify-start mt-2 mb-4 h-10 px-1 z-20">
                 <TouchableOpacity
-                  className="w-10 h-10 rounded-full border border-primary/20 bg-white justify-center items-center active:scale-95 z-10"
+                  className="w-10 h-10 rounded-full border border-primary/10 bg-white justify-center items-center active:scale-95"
                   onPress={() => setViewMode("welcome")}
                   activeOpacity={0.7}
                 >
-                  <Ionicons name="chevron-back" size={20} color="#8B5CF6" />
+                  <Ionicons name="chevron-back" size={20} color={mode === "register" ? "#10B981" : "#8B5CF6"} />
                 </TouchableOpacity>
               </View>
 
-              {/* Operator Badge Logo */}
-              <View className="items-center mb-2">
-                <View className="w-16 h-16 rounded-[20px] bg-primary items-center justify-center mb-4 shadow-sm">
-                  <View className="flex-row flex-wrap w-8 h-8 items-center justify-center">
-                    <Text className="text-white text-base font-bold w-4 text-center">+</Text>
-                    <Text className="text-white text-base font-bold w-4 text-center">-</Text>
-                    <Text className="text-white text-base font-bold w-4 text-center">×</Text>
-                    <Text className="text-white text-base font-bold w-4 text-center">÷</Text>
-                  </View>
-                </View>
+              {/* Centered Square Root Logo */}
+              <View className="items-center mb-6 z-20">
+                <LinearGradient
+                  colors={mode === "register" ? ["#10B981", "#059669"] : ["#8B5CF6", "#6366F1"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={{ 
+                    width: 76, 
+                    height: 76, 
+                    borderRadius: 24, 
+                    alignItems: "center", 
+                    justifyContent: "center", 
+                    marginBottom: 16,
+                    shadowColor: mode === "register" ? "#10B981" : "#8B5CF6",
+                    shadowOffset: { width: 0, height: 8 },
+                    shadowOpacity: 0.12,
+                    shadowRadius: 16,
+                    elevation: 4
+                  }}
+                >
+                  <Text className="text-white text-3xl font-extrabold">√x</Text>
+                </LinearGradient>
 
-                <Text className="text-text-primary text-3xl font-bold tracking-wider">
+                <Text className="text-text-primary text-[28px] font-extrabold tracking-tight font-sans">
                   {mode === "register" ? "Create Account" : "Welcome Back!"}
                 </Text>
-                <Text className="text-text-secondary font-sans text-xs mt-1.5 text-center">
+                <Text className="text-text-secondary text-xs mt-2 text-center font-sans leading-relaxed px-4">
                   {mode === "register" ? "Join us and start learning math." : "Login to continue your math journey."}
                 </Text>
               </View>
 
               {/* Input Form Fields */}
-              <View className="w-full mb-6 mt-4">
+              <View className="w-full mb-6 z-20">
                 {mode === "register" && (
                   <>
-                    <View className="mb-3 relative justify-center">
-                      <TextInput
-                        className={`w-full bg-white border rounded-2xl pl-12 pr-5 py-4 text-text-primary font-sans text-sm transition-all ${
-                          focusedField === "name" ? "border-primary" : "border-primary/10"
-                        }`}
-                        placeholder="Full Name"
-                        placeholderTextColor="#9CA3AF"
-                        value={name}
-                        onChangeText={setName}
-                        autoCapitalize="words"
-                        onFocus={() => setFocusedField("name")}
-                        onBlur={() => setFocusedField(null)}
-                      />
-                      <View className="absolute left-4">
-                        <Ionicons name="person-outline" size={18} color="#9CA3AF" />
+                    <View className="mb-3.5">
+                      <Text className="text-slate-700 text-xs font-bold mb-2 font-sans">Name</Text>
+                      <View className="relative justify-center">
+                        <TextInput
+                          className="w-full bg-white border rounded-2xl pl-12 pr-5 py-4 text-text-primary font-sans text-sm transition-all"
+                          style={{
+                            borderColor: focusedField === "name" ? "#10B981" : "rgba(16, 185, 129, 0.1)"
+                          }}
+                          placeholder="Enter your name"
+                          placeholderTextColor="#9CA3AF"
+                          value={name}
+                          onChangeText={setName}
+                          autoCapitalize="words"
+                          onFocus={() => setFocusedField("name")}
+                          onBlur={() => setFocusedField(null)}
+                        />
+                        <View className="absolute left-4">
+                          <Ionicons name="person-outline" size={18} color="#9CA3AF" />
+                        </View>
                       </View>
                     </View>
 
-                    <View className="mb-3 relative justify-center">
-                      <TextInput
-                        className={`w-full bg-white border rounded-2xl pl-12 pr-5 py-4 text-text-primary font-sans text-sm transition-all ${
-                          focusedField === "phone" ? "border-primary" : "border-primary/10"
-                        }`}
-                        placeholder="Phone (Optional)"
-                        placeholderTextColor="#9CA3AF"
-                        value={phone}
-                        onChangeText={setPhone}
-                        keyboardType="phone-pad"
-                        onFocus={() => setFocusedField("phone")}
-                        onBlur={() => setFocusedField(null)}
-                      />
-                      <View className="absolute left-4">
-                        <Ionicons name="call-outline" size={18} color="#9CA3AF" />
+                    <View className="mb-3.5">
+                      <Text className="text-slate-700 text-xs font-bold mb-2 font-sans">Phone (Optional)</Text>
+                      <View className="relative justify-center">
+                        <TextInput
+                          className="w-full bg-white border rounded-2xl pl-12 pr-5 py-4 text-text-primary font-sans text-sm transition-all"
+                          style={{
+                            borderColor: focusedField === "phone" ? "#10B981" : "rgba(16, 185, 129, 0.1)"
+                          }}
+                          placeholder="Enter your phone number"
+                          placeholderTextColor="#9CA3AF"
+                          value={phone}
+                          onChangeText={setPhone}
+                          keyboardType="phone-pad"
+                          onFocus={() => setFocusedField("phone")}
+                          onBlur={() => setFocusedField(null)}
+                        />
+                        <View className="absolute left-4">
+                          <Ionicons name="call-outline" size={18} color="#9CA3AF" />
+                        </View>
                       </View>
                     </View>
                   </>
                 )}
 
-                <View className="mb-3 relative justify-center">
-                  <TextInput
-                    className={`w-full bg-white border rounded-2xl pl-12 pr-5 py-4 text-text-primary font-sans text-sm transition-all ${
-                      focusedField === "email" ? "border-primary" : "border-primary/10"
-                    }`}
-                    placeholder="Email Address"
-                    placeholderTextColor="#9CA3AF"
-                    value={email}
-                    onChangeText={setEmail}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    onFocus={() => setFocusedField("email")}
-                    onBlur={() => setFocusedField(null)}
-                  />
-                  <View className="absolute left-4">
-                    <Ionicons name="mail-outline" size={18} color="#9CA3AF" />
-                  </View>
-                </View>
-
-                <View className="mb-3 relative justify-center">
-                  <TextInput
-                    className={`w-full bg-white border rounded-2xl pl-12 pr-14 py-4 text-text-primary font-sans text-sm transition-all ${
-                      focusedField === "password" ? "border-primary" : "border-primary/10"
-                    }`}
-                    placeholder={mode === "register" ? "Create Password" : "Password"}
-                    placeholderTextColor="#9CA3AF"
-                    value={password}
-                    onChangeText={setPassword}
-                    secureTextEntry={!showPassword}
-                    onFocus={() => setFocusedField("password")}
-                    onBlur={() => setFocusedField(null)}
-                  />
-                  <View className="absolute left-4">
-                    <Ionicons name="lock-closed-outline" size={18} color="#9CA3AF" />
-                  </View>
-                  <TouchableOpacity
-                    className="absolute right-4 p-2"
-                    onPress={() => setShowPassword(!showPassword)}
-                    activeOpacity={0.7}
-                  >
-                    <Ionicons
-                      name={showPassword ? "eye-off-outline" : "eye-outline"}
-                      size={18}
-                      color="#9CA3AF"
-                    />
-                  </TouchableOpacity>
-                </View>
-
-                {mode === "register" && (
-                  <View className="mb-4 relative justify-center">
+                <View className="mb-3.5">
+                  <Text className="text-slate-700 text-xs font-bold mb-2 font-sans">
+                    {mode === "register" ? "Email" : "Email or Phone"}
+                  </Text>
+                  <View className="relative justify-center">
                     <TextInput
-                      className={`w-full bg-white border rounded-2xl pl-12 pr-14 py-4 text-text-primary font-sans text-sm transition-all ${
-                        focusedField === "confirmPassword" ? "border-primary" : "border-primary/10"
-                      }`}
-                      placeholder="Confirm Password"
+                      className="w-full bg-white border rounded-2xl pl-12 pr-5 py-4 text-text-primary font-sans text-sm transition-all"
+                      style={{
+                        borderColor: focusedField === "email" ? (mode === "register" ? "#10B981" : "#8B5CF6") : (mode === "register" ? "rgba(16, 185, 129, 0.1)" : "rgba(139, 92, 246, 0.1)")
+                      }}
+                      placeholder={mode === "register" ? "Enter your email" : "Enter email or phone"}
                       placeholderTextColor="#9CA3AF"
-                      value={confirmPassword}
-                      onChangeText={setConfirmPassword}
-                      secureTextEntry={!showConfirmPassword}
-                      onFocus={() => setFocusedField("confirmPassword")}
+                      value={email}
+                      onChangeText={setEmail}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      onFocus={() => setFocusedField("email")}
+                      onBlur={() => setFocusedField(null)}
+                    />
+                    <View className="absolute left-4">
+                      <Ionicons name="mail-outline" size={18} color="#9CA3AF" />
+                    </View>
+                  </View>
+                </View>
+
+                <View className="mb-3">
+                  <Text className="text-slate-700 text-xs font-bold mb-2 font-sans">Password</Text>
+                  <View className="relative justify-center">
+                    <TextInput
+                      className="w-full bg-white border rounded-2xl pl-12 pr-14 py-4 text-text-primary font-sans text-sm transition-all"
+                      style={{
+                        borderColor: focusedField === "password" ? (mode === "register" ? "#10B981" : "#8B5CF6") : (mode === "register" ? "rgba(16, 185, 129, 0.1)" : "rgba(139, 92, 246, 0.1)")
+                      }}
+                      placeholder={mode === "register" ? "Create a password" : "Enter password"}
+                      placeholderTextColor="#9CA3AF"
+                      value={password}
+                      onChangeText={setPassword}
+                      secureTextEntry={!showPassword}
+                      onFocus={() => setFocusedField("password")}
                       onBlur={() => setFocusedField(null)}
                     />
                     <View className="absolute left-4">
@@ -422,34 +489,90 @@ const AuthScreen = () => {
                     </View>
                     <TouchableOpacity
                       className="absolute right-4 p-2"
-                      onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                      onPress={() => setShowPassword(!showPassword)}
                       activeOpacity={0.7}
                     >
                       <Ionicons
-                        name={showConfirmPassword ? "eye-off-outline" : "eye-outline"}
+                        name={showPassword ? "eye-off-outline" : "eye-outline"}
                         size={18}
                         color="#9CA3AF"
                       />
                     </TouchableOpacity>
                   </View>
+                </View>
+
+                {mode === "register" && (
+                  <View className="mb-4">
+                    <Text className="text-slate-700 text-xs font-bold mb-2 font-sans">Confirm Password</Text>
+                    <View className="relative justify-center">
+                      <TextInput
+                        className="w-full bg-white border rounded-2xl pl-12 pr-14 py-4 text-text-primary font-sans text-sm transition-all"
+                        style={{
+                          borderColor: focusedField === "confirmPassword" ? "#10B981" : "rgba(16, 185, 129, 0.1)"
+                        }}
+                        placeholder="Confirm your password"
+                        placeholderTextColor="#9CA3AF"
+                        value={confirmPassword}
+                        onChangeText={setConfirmPassword}
+                        secureTextEntry={!showConfirmPassword}
+                        onFocus={() => setFocusedField("confirmPassword")}
+                        onBlur={() => setFocusedField(null)}
+                      />
+                      <View className="absolute left-4">
+                        <Ionicons name="lock-closed-outline" size={18} color="#9CA3AF" />
+                      </View>
+                      <TouchableOpacity
+                        className="absolute right-4 p-2"
+                        onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                        activeOpacity={0.7}
+                      >
+                        <Ionicons
+                          name={showConfirmPassword ? "eye-off-outline" : "eye-outline"}
+                          size={18}
+                          color="#9CA3AF"
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                )}
+
+                {/* Forgot Password link (Login mode only) */}
+                {mode === "login" && (
+                  <TouchableOpacity 
+                    className="align-self-end items-end mb-5 mt-1.5" 
+                    activeOpacity={0.7}
+                  >
+                    <Text className="text-primary text-xs font-bold font-sans">Forgot Password?</Text>
+                  </TouchableOpacity>
                 )}
 
                 {/* Primary CTA Sign In/Up Button */}
                 <TouchableOpacity
-                  className={`w-full rounded-2xl py-4 items-center mt-3 active:scale-95 transition-all shadow-sm ${
-                    mode === "register" ? "bg-[#10B981]" : "bg-primary"
-                  }`}
                   onPress={handleSubmit}
                   disabled={loading}
+                  className="w-full active:scale-95 transition-all mt-2"
                   activeOpacity={0.8}
                 >
-                  {loading ? (
-                    <ActivityIndicator size="small" color="#FFFFFF" />
-                  ) : (
-                    <Text className="text-white font-sans font-bold text-sm tracking-wider">
-                      {mode === "register" ? "Sign Up" : "Login"}
-                    </Text>
-                  )}
+                  <LinearGradient
+                    colors={mode === "register" ? ["#10B981", "#059669"] : ["#8B5CF6", "#6D28D9"]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={{
+                      borderRadius: 20,
+                      width: "100%",
+                      paddingVertical: 15,
+                      alignItems: "center",
+                      justifyContent: "center"
+                    }}
+                  >
+                    {loading ? (
+                      <ActivityIndicator size="small" color="#FFFFFF" />
+                    ) : (
+                      <Text className="text-white font-sans font-bold text-sm tracking-wider">
+                        {mode === "register" ? "Sign Up" : "Login"}
+                      </Text>
+                    )}
+                  </LinearGradient>
                 </TouchableOpacity>
 
                 {/* Switch Login/Register Toggle option */}
@@ -462,34 +585,39 @@ const AuthScreen = () => {
                 >
                   <Text className="text-text-secondary text-xs font-sans tracking-wide">
                     {mode === "login" ? "Don't have an account? " : "Already have an account? "}
-                    <Text className="text-primary font-bold">{mode === "login" ? "Sign Up" : "Login"}</Text>
+                    <Text 
+                      className="font-bold underline"
+                      style={{ color: mode === "login" ? "#8B5CF6" : "#10B981" }}
+                    >
+                      {mode === "login" ? "Sign Up" : "Login"}
+                    </Text>
                   </Text>
                 </TouchableOpacity>
               </View>
 
               {/* Divider and Google Auth option */}
-              <View className="w-full mb-8">
-                <View className="flex-row items-center mb-6">
+              <View className="w-full mb-6 z-20">
+                <View className="flex-row items-center mb-5">
                   <View className="flex-grow h-[0.5px] bg-primary/20" />
                   <Text className="mx-4 text-text-secondary font-sans text-[10px] uppercase tracking-widest">or</Text>
                   <View className="flex-grow h-[0.5px] bg-primary/20" />
                 </View>
 
                 <TouchableOpacity
-                  className="w-full bg-white border border-primary/20 rounded-2xl py-4 flex-row items-center justify-center active:scale-95"
+                  className="w-full bg-white border border-primary/10 rounded-2xl py-4 flex-row items-center justify-center active:scale-95 shadow-sm"
                   onPress={handleGoogleAuth}
                   disabled={loading}
                   activeOpacity={0.75}
                 >
                   <Ionicons name="logo-google" size={16} color="#8B5CF6" />
-                  <Text className="text-text-primary font-sans font-bold text-xs tracking-wider ml-3">
+                  <Text className="text-slate-700 font-sans font-bold text-xs tracking-wider ml-3">
                     Continue with Google
                   </Text>
                 </TouchableOpacity>
               </View>
 
               {/* Legal Terms Disclosure */}
-              <View className="items-center px-4">
+              <View className="items-center px-4 z-20">
                 <Text className="text-center text-text-tertiary text-[9px] uppercase tracking-widest leading-5">
                   By accessing your account, you agree to our
                 </Text>
