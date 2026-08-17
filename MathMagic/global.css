@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Hide scrollbars for all text inputs and textareas in React Native Web (Expo Web) */
+textarea::-webkit-scrollbar,
+input::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+textarea,
+input {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
