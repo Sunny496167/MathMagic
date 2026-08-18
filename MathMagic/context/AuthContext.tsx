@@ -36,8 +36,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setIsSignedIn(true);
       }
     } catch (error) {
-      console.error("Failed to load user", error);
+      console.warn("Failed to load user:", error instanceof Error ? error.message : error);
       await tokenStorage.removeToken();
+      setUser(null);
+      setIsSignedIn(false);
     } finally {
       setIsLoaded(true);
     }
