@@ -7,8 +7,8 @@ configureReanimatedLogger({
   strict: false,
 });
 import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { AuthProvider } from "../context/AuthContext";
 import { Platform, View, ActivityIndicator, Text } from "react-native";
+import { AuthProvider } from "../src/context/AuthContext";
 
 const queryClient = new QueryClient({
   queryCache: new QueryCache({

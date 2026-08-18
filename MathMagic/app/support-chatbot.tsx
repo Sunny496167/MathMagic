@@ -10,10 +10,10 @@ import {
   ActivityIndicator,
   Keyboard
 } from "react-native";
-import SafeScreen from "@/components/SafeScreen";
+import { SafeScreen } from "@/src/components/common/SafeScreen";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useApi } from "@/lib/api";
+import { useApi } from "@/src/api/client";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface Message {

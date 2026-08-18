@@ -1,6 +1,6 @@
 import { Redirect, Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/src/context/AuthContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BlurView } from "expo-blur";
 import { StyleSheet, View, ActivityIndicator } from "react-native";

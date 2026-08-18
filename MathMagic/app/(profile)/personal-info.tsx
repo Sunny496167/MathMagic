@@ -1,6 +1,6 @@
-import SafeScreen from "@/components/SafeScreen";
-import { useAuth } from "@/context/AuthContext";
-import { useApi } from "@/lib/api";
+import { SafeScreen } from '@/src/components/common/SafeScreen';
+import { useAuth } from '@/src/context/AuthContext';
+import { useApi } from '@/src/api/client';
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { Image } from "expo-image";

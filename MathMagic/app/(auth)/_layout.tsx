@@ -1,5 +1,5 @@
 import { Redirect, Stack } from "expo-router";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/src/context/AuthContext";
 import { View, ActivityIndicator } from "react-native";
 
 export default function AuthRoutesLayout() {

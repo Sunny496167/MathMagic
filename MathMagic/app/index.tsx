@@ -1,5 +1,5 @@
 import { Redirect } from "expo-router";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/src/context/AuthContext";
 import { View, ActivityIndicator, Text, Platform } from "react-native";
 
 export default function RootIndex() {

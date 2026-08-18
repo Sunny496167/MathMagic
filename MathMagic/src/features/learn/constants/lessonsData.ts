@@ -1,0 +1,48 @@
+import { Lesson } from '../types/learn.types';
+
+export const LESSONS: Lesson[] = [
+  {
+    id: 'pemdas',
+    title: 'Basic Arithmetic',
+    category: 'Basics',
+    formula: 'P.E.M.D.A.S.',
+    description: 'Parentheses, Exponents, Multiplication & Division (left to right), Addition & Subtraction (left to right).',
+    exampleProblem: 'Solve 10 - 2 × 3 + (4 + 2)',
+    exampleStep: '1. Parentheses: 4 + 2 = 6.\n2. Multiplication: 2 × 3 = 6.\n3. Left-to-right math: 10 - 6 + 6 = 10.',
+    quizQuestion: 'What is 8 + 3 × (6 - 4)?',
+    quizAnswer: '14',
+  },
+  {
+    id: 'quad',
+    title: 'Algebra Basics',
+    category: 'Algebra',
+    formula: 'x = (-b ± √(b² - 4ac)) / 2a',
+    description: 'Finds the solutions (roots) of any quadratic equation of the form ax² + bx + c = 0.',
+    exampleProblem: 'Solve x² - 5x + 6 = 0',
+    exampleStep: 'Here, a=1, b=-5, c=6.\nx = (5 ± √((-5)² - 4(1)(6))) / 2(1)\nx = (5 ± √(25 - 24)) / 2\nx = (5 ± 1) / 2 -> x = 3 or x = 2.',
+    quizQuestion: 'What is the positive root of x² - 4 = 0?',
+    quizAnswer: '2',
+  },
+  {
+    id: 'fractions',
+    title: 'Fractions',
+    category: 'Fractions',
+    formula: 'a/b + c/d = (ad + bc)/bd',
+    description: 'Add fractions by finding a common denominator and adding the numerators.',
+    exampleProblem: 'Solve 1/2 + 1/3',
+    exampleStep: '1. Find common denominator: 2 × 3 = 6.\n2. Convert: 1/2 = 3/6, 1/3 = 2/6.\n3. Add: 3/6 + 2/6 = 5/6.',
+    quizQuestion: 'What is 1/4 + 2/4 in simplified fraction?',
+    quizAnswer: '3/4',
+  },
+  {
+    id: 'pythagoras',
+    title: 'Geometry & Shapes',
+    category: 'Geometry',
+    formula: 'a² + b² = c²',
+    description: 'In any right-angled triangle, the square of the hypotenuse is equal to the sum of the squares of the other two sides.',
+    exampleProblem: 'Side a = 3, Side b = 4. Find c.',
+    exampleStep: '1. a² = 9, b² = 16.\n2. a² + b² = 9 + 16 = 25.\n3. c = √25 = 5.',
+    quizQuestion: 'If side a = 6 and side b = 8, what is hypotenuse c?',
+    quizAnswer: '10',
+  },
+];
