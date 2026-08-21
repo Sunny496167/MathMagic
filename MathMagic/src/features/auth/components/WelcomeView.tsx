@@ -1,165 +1,331 @@
-import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  useWindowDimensions,
+  Platform,
+} from 'react-native';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as Haptics from 'expo-haptics';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withSequence,
+  withTiming,
+  Easing,
+  FadeInDown,
+  FadeInUp,
+} from 'react-native-reanimated';
+import { FeatureCarousel, type FeatureCarouselItem } from '../../../components/common';
 
 interface WelcomeViewProps {
   onStart: () => void;
   onLogin: () => void;
 }
 
+const VALUE_PROPS: FeatureCarouselItem[] = [
+  {
+    id: 'visual',
+    title: 'Visual & Interactive Lessons',
+    subtitle: 'Step-by-step animations that make hard math concepts effortlessly clear.',
+    icon: 'school',
+    color: '#8B5CF6',
+    bg: '#F5F3FF',
+    badge: '100+ Topics',
+  },
+  {
+    id: 'gamified',
+    title: 'Daily Quests & Math Arena',
+    subtitle: 'Play speed runs, earn gems, unlock badges & challenge friends.',
+    icon: 'game-controller',
+    color: '#10B981',
+    bg: '#ECFDF5',
+    badge: 'Play & Win',
+  },
+  {
+    id: 'mastery',
+    title: 'Track Progress & Ace Tests',
+    subtitle: 'Instant AI feedback, streak rewards, and verified math IQ boosters.',
+    icon: 'trophy',
+    color: '#F59E0B',
+    bg: '#FFFBEB',
+    badge: 'Top Scores',
+  },
+];
+
 export const WelcomeView = ({ onStart, onLogin }: WelcomeViewProps) => {
+  const { height, width } = useWindowDimensions();
+
+  // Responsive scale calculations
+  const isSmallScreen = height < 740;
+  const isLargeScreen = height >= 850;
+  const heroSize = isSmallScreen ? 180 : isLargeScreen ? 230 : 205;
+  const maxHeroWidth = Math.min(width - 48, 340);
+
+  // Floating Micro-Animations with Reanimated Physics
+  const float1 = useSharedValue(0);
+  const float2 = useSharedValue(0);
+  const float3 = useSharedValue(0);
+  const float4 = useSharedValue(0);
+
+  useEffect(() => {
+    float1.value = withRepeat(
+      withSequence(
+        withTiming(-7, { duration: 1900, easing: Easing.inOut(Easing.sin) }),
+        withTiming(7, { duration: 1900, easing: Easing.inOut(Easing.sin) })
+      ),
+      -1,
+      true
+    );
+
+    float2.value = withRepeat(
+      withSequence(
+        withTiming(6, { duration: 2300, easing: Easing.inOut(Easing.sin) }),
+        withTiming(-8, { duration: 2300, easing: Easing.inOut(Easing.sin) })
+      ),
+      -1,
+      true
+    );
+
+    float3.value = withRepeat(
+      withSequence(
+        withTiming(-6, { duration: 2100, easing: Easing.inOut(Easing.sin) }),
+        withTiming(6, { duration: 2100, easing: Easing.inOut(Easing.sin) })
+      ),
+      -1,
+      true
+    );
+
+    float4.value = withRepeat(
+      withSequence(
+        withTiming(7, { duration: 2500, easing: Easing.inOut(Easing.sin) }),
+        withTiming(-6, { duration: 2500, easing: Easing.inOut(Easing.sin) })
+      ),
+      -1,
+      true
+    );
+  }, []);
+
+  const badgeStyle1 = useAnimatedStyle(() => ({
+    transform: [{ translateY: float1.value }, { rotate: '-6deg' }],
+  }));
+
+  const badgeStyle2 = useAnimatedStyle(() => ({
+    transform: [{ translateY: float2.value }, { rotate: '6deg' }],
+  }));
+
+  const badgeStyle3 = useAnimatedStyle(() => ({
+    transform: [{ translateY: float3.value }, { rotate: '5deg' }],
+  }));
+
+  const badgeStyle4 = useAnimatedStyle(() => ({
+    transform: [{ translateY: float4.value }, { rotate: '-5deg' }],
+  }));
+
+  const handleStartPress = () => {
+    if (Platform.OS !== 'web') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    }
+    onStart();
+  };
+
+  const handleLoginPress = () => {
+    if (Platform.OS !== 'web') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+    onLogin();
+  };
+
   return (
-    <View className="flex-1 bg-transparent px-6 pt-2 pb-10 justify-between">
-      {/* Top Bar with Logo & Moon icon */}
-      <View className="w-full flex-row justify-between items-center px-1">
-        <LinearGradient
-          colors={['#8B5CF6', '#6366F1']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={{ width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center' }}
+    <View className="flex-1 px-5 pt-2 pb-6 justify-between">
+      {/* Top Header / Brand Bar */}
+      <Animated.View
+        entering={FadeInDown.duration(600).delay(100)}
+        className="flex-row items-center justify-between px-1"
+      >
+        <View className="flex-row items-center gap-2.5">
+          <View className="rounded-xl overflow-hidden shadow-sm shadow-purple-500/20 border border-purple-200/60">
+            <Image
+              source={require('../../../../assets/images/icon.png')}
+              style={{ width: 40, height: 40 }}
+              contentFit="cover"
+              transition={300}
+            />
+          </View>
+          <View className="justify-center">
+            <View className="flex-row items-center gap-1.5">
+              <Text className="text-xl font-black text-slate-800 tracking-tight">Math</Text>
+              <Text className="text-xl font-black text-purple-600 tracking-tight">Magic</Text>
+              <View className="bg-purple-100 border border-purple-200 px-1.5 py-0.5 rounded-full">
+                <Text className="text-purple-700 text-[9px] font-black tracking-wider">PRO</Text>
+              </View>
+            </View>
+            <Text className="text-[11px] text-slate-500 font-semibold -mt-0.5">
+              The Adventure of Numbers ✨
+            </Text>
+          </View>
+        </View>
+
+        <TouchableOpacity
+          className="w-10 h-10 rounded-2xl bg-white/90 border border-purple-200 items-center justify-center shadow-sm shadow-purple-500/10 active:scale-90"
+          activeOpacity={0.7}
+          onPress={() => {
+            if (Platform.OS !== 'web') {
+              Haptics.selectionAsync();
+            }
+          }}
         >
-          <Text className="text-white text-base font-bold">√x</Text>
-        </LinearGradient>
-        <TouchableOpacity className="w-10 h-10 bg-slate-50 border border-primary/5 rounded-full justify-center items-center">
-          <Ionicons name="moon-outline" size={18} color="#8B5CF6" />
+          <Ionicons name="sparkles" size={18} color="#8B5CF6" />
         </TouchableOpacity>
-      </View>
+      </Animated.View>
 
-      {/* Title & Tagline */}
-      <View className="items-center">
-        <Text className="text-text-primary text-[28px] font-extrabold text-center tracking-tight font-sans">
-          Welcome to
+      {/* Main Title & Hero Hook */}
+      <Animated.View
+        entering={FadeInDown.duration(650).delay(200)}
+        className="items-center my-1 px-2"
+      >
+        <Text className="text-[26px] font-black text-slate-900 text-center tracking-tight leading-tight">
+          Learn Math Faster with{' '}
+          <Text className="text-purple-600">Pure Joy</Text>
         </Text>
-        <Text className="text-primary text-[32px] font-extrabold text-center tracking-tight font-sans">
-          Math Path
+        <Text className="text-xs text-slate-500 text-center mt-1.5 leading-relaxed font-medium px-4">
+          Master everyday math, conquer tough tests & level up your brain with gamified adventures!
         </Text>
-        <Text className="text-text-secondary text-xs mt-2 text-center px-4 font-sans leading-relaxed">
-          Learn math in a simple, fun and effective way.
-        </Text>
-      </View>
+      </Animated.View>
 
-      {/* Hero Image Container with floating mathematical decorations */}
-      <View className="w-full max-w-[310px] self-center my-4 items-center justify-center relative">
-        <View
-          className="absolute left-[-16px] top-6 bg-[#EFF6FF] border border-[#BFDBFE] px-3 py-1.5 rounded-full shadow-sm z-10"
-          style={{ transform: [{ rotate: '-10deg' }] }}
+      {/* Hero Showcase with Character Illustration & Dynamic Badges */}
+      <Animated.View
+        entering={FadeInUp.duration(700).delay(300)}
+        className="self-center items-center justify-center my-2 relative"
+        style={{ width: maxHeroWidth, height: heroSize }}
+      >
+        {/* Floating Badge 1 - Top Left */}
+        <Animated.View
+          className="absolute left-[-8px] top-1 z-20 shadow-md shadow-blue-500/20"
+          style={badgeStyle1}
         >
-          <Text className="text-[#2563EB] text-xs font-extrabold font-sans">2+3=5</Text>
-        </View>
+          <LinearGradient
+            colors={['#EFF6FF', '#DBEAFE']}
+            className="flex-row items-center gap-1 px-3 py-1.5 rounded-full border border-blue-200"
+          >
+            <Text className="text-xs font-black text-blue-700">✨ 2 + 3 = 5</Text>
+          </LinearGradient>
+        </Animated.View>
 
-        <View
-          className="absolute left-[-8px] bottom-10 bg-[#ECFDF5] border border-[#A7F3D0] px-3 py-1.5 rounded-full shadow-sm z-10"
-          style={{ transform: [{ rotate: '10deg' }] }}
+        {/* Floating Badge 2 - Top Right */}
+        <Animated.View
+          className="absolute right-[-8px] top-2 z-20 shadow-md shadow-amber-500/20"
+          style={badgeStyle2}
         >
-          <Text className="text-[#059669] text-xs font-extrabold font-sans">7-2=5</Text>
-        </View>
+          <LinearGradient
+            colors={['#FFFBEB', '#FEF3C7']}
+            className="flex-row items-center gap-1 px-3 py-1.5 rounded-full border border-amber-200"
+          >
+            <Text className="text-xs font-black text-amber-800">π ≈ 3.14</Text>
+          </LinearGradient>
+        </Animated.View>
 
-        <View className="absolute right-[-10px] top-4 bg-[#FFFBEB] border border-[#FDE68A] w-9 h-9 rounded-full items-center justify-center shadow-sm z-10">
-          <Ionicons name="bulb" size={18} color="#D97706" />
-        </View>
+        {/* Floating Badge 3 - Bottom Left */}
+        <Animated.View
+          className="absolute left-[-6px] bottom-3 z-20 shadow-md shadow-emerald-500/20"
+          style={badgeStyle3}
+        >
+          <LinearGradient
+            colors={['#ECFDF5', '#D1FAE5']}
+            className="flex-row items-center gap-1 px-3 py-1.5 rounded-full border border-emerald-200"
+          >
+            <Ionicons name="flash" size={12} color="#059669" />
+            <Text className="text-xs font-black text-emerald-800">100 XP Boost</Text>
+          </LinearGradient>
+        </Animated.View>
 
-        <View className="absolute right-[-8px] bottom-8 bg-[#FFF7ED] border border-[#FFEDD5] w-9 h-9 rounded-full items-center justify-center shadow-sm z-10">
-          <Ionicons name="triangle" size={18} color="#EA580C" />
-        </View>
+        {/* Floating Badge 4 - Bottom Right */}
+        <Animated.View
+          className="absolute right-[-6px] bottom-4 z-20 shadow-md shadow-purple-500/20"
+          style={badgeStyle4}
+        >
+          <LinearGradient
+            colors={['#FAF5FF', '#F3E8FF']}
+            className="flex-row items-center gap-1 px-3 py-1.5 rounded-full border border-purple-200"
+          >
+            <Ionicons name="trophy" size={12} color="#7C3AED" />
+            <Text className="text-xs font-black text-purple-800">Mastery Lv.5</Text>
+          </LinearGradient>
+        </Animated.View>
 
-        {/* Main Illustration frame */}
-        <View className="w-full h-[220px] bg-white border border-primary/10 rounded-[32px] p-2 shadow-sm overflow-hidden">
+        {/* Core Hero Frame Portal */}
+        <View className="w-full h-full rounded-[32px] bg-white border-2 border-purple-200/80 p-2 overflow-hidden shadow-xl shadow-purple-600/15 justify-center items-center">
           <Image
             source={require('../../../../assets/images/student_learning.jpg')}
-            style={{ width: '100%', height: '100%', borderRadius: 24 }}
+            style={{ width: '100%', height: '100%' }}
             contentFit="cover"
             transition={300}
           />
         </View>
-      </View>
+      </Animated.View>
 
-      {/* White Card Container for Features List */}
-      <View
-        className="w-full bg-white border border-primary/5 rounded-[32px] p-5 shadow-sm items-center"
-        style={{
-          shadowColor: '#8B5CF6',
-          shadowOffset: { width: 0, height: 8 },
-          shadowOpacity: 0.05,
-          shadowRadius: 16,
-          elevation: 3,
-        }}
+      {/* Interactive Value Carousel Card */}
+      <Animated.View entering={FadeInUp.duration(750).delay(400)} className="w-full my-1">
+        <FeatureCarousel
+          items={VALUE_PROPS}
+          containerClassName="bg-white/95 rounded-3xl border border-purple-200/80 p-4 shadow-sm shadow-purple-500/10"
+        />
+      </Animated.View>
+
+      {/* Duolingo-style 3D Action Buttons */}
+      <Animated.View
+        entering={FadeInUp.duration(800).delay(500)}
+        className="w-full items-center gap-2.5 mt-2"
       >
-        <View className="w-full mb-6">
-          {[
-            {
-              title: 'Learn Step by Step',
-              desc: 'Easy lessons from basic to advanced.',
-              bg: 'bg-[#F3E8FF]',
-              border: 'border-[#E9D5FF]',
-              color: '#7C3AED',
-              icon: 'book',
-            },
-            {
-              title: 'Play & Learn',
-              desc: 'Fun games to improve your skills.',
-              bg: 'bg-[#E8F8F0]',
-              border: 'border-[#D1F2E1]',
-              color: '#10B981',
-              icon: 'game-controller',
-            },
-            {
-              title: 'Test & Improve',
-              desc: 'Quizzes to track and boost your learning.',
-              bg: 'bg-[#FEF3C7]',
-              border: 'border-[#FEEB9F]',
-              color: '#D97706',
-              icon: 'trophy',
-            },
-          ].map((item, idx) => (
-            <View
-              key={item.title}
-              className={`flex-row items-center justify-between bg-slate-50/50 border border-slate-100/60 p-2.5 rounded-2xl ${
-                idx !== 2 ? 'mb-3' : ''
-              }`}
-            >
-              <View className="flex-row items-center flex-1 pr-2">
-                <View
-                  className={`w-10 h-10 rounded-xl ${item.bg} border ${item.border} items-center justify-center mr-3.5 shadow-sm`}
-                >
-                  <Ionicons name={item.icon as any} size={18} color={item.color} />
-                </View>
-                <View className="flex-1">
-                  <Text className="text-slate-800 text-sm font-extrabold font-sans">{item.title}</Text>
-                  <Text className="text-slate-500 text-[10px] mt-0.5 font-medium">{item.desc}</Text>
-                </View>
-              </View>
-              <Ionicons name="chevron-forward-outline" size={14} color="#94A3B8" />
+        {/* Primary 3D Gradient CTA */}
+        <TouchableOpacity
+          onPress={handleStartPress}
+          activeOpacity={0.9}
+         className="w-full rounded-2xl bg-purple-500 border-2 border-purple-600 border-b-4 border-b-purple-700 py-3.5 items-center justify-center shadow-sm active:translate-y-0.5"
+        >
+          <View className="flex-row gap-2">
+            <Text className="text-white text-center item-center text-base font-black tracking-wider uppercase">
+              GET STARTED FREE
+            </Text>
+            <View className="w-6 h-6 rounded-full bg-white/20 items-center justify-center">
+              <Ionicons name="arrow-forward" size={15} color="#FFFFFF" />
             </View>
-          ))}
-        </View>
-
-        {/* Let's Start CTA Button */}
-        <TouchableOpacity onPress={onStart} className="w-full active:scale-95 transition-all" activeOpacity={0.8}>
-          <LinearGradient
-            colors={['#8B5CF6', '#6D28D9']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={{
-              borderRadius: 20,
-              width: '100%',
-              paddingVertical: 15,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Text className="text-white font-sans font-bold text-sm tracking-wider">Let's Start →</Text>
-          </LinearGradient>
+          </View>
         </TouchableOpacity>
 
-        {/* Login link */}
-        <TouchableOpacity onPress={onLogin} className="mt-3.5 py-1" activeOpacity={0.7}>
-          <Text className="text-text-secondary font-sans text-xs tracking-wider">
-            Already have an account? <Text className="text-primary font-bold underline">Login</Text>
+        {/* Secondary 3D Outline CTA */}
+        <TouchableOpacity
+          onPress={handleLoginPress}
+          activeOpacity={0.8}
+          className="w-full rounded-2xl bg-white border-2 border-purple-200 border-b-4 border-b-purple-300 py-3.5 items-center justify-center shadow-sm active:translate-y-0.5"
+        >
+          <Text className="text-purple-800 text-sm font-extrabold tracking-wider uppercase">
+            I ALREADY HAVE AN ACCOUNT
           </Text>
         </TouchableOpacity>
-      </View>
+
+        {/* Social Proof & Trust Strip */}
+        <View className="flex-row items-center justify-center gap-2 mt-1">
+          <View className="flex-row items-center gap-1">
+            <Ionicons name="star" size={12} color="#F59E0B" />
+            <Text className="text-[11px] text-slate-500 font-bold">4.9/5 Rating</Text>
+          </View>
+          <View className="w-1 h-1 rounded-full bg-slate-300" />
+          <View className="flex-row items-center gap-1">
+            <MaterialCommunityIcons name="shield-check" size={13} color="#10B981" />
+            <Text className="text-[11px] text-slate-500 font-bold">100% Safe</Text>
+          </View>
+          <View className="w-1 h-1 rounded-full bg-slate-300" />
+          <View className="flex-row items-center gap-1">
+            <Ionicons name="people" size={12} color="#8B5CF6" />
+            <Text className="text-[11px] text-slate-500 font-bold">50k+ Learners</Text>
+          </View>
+        </View>
+      </Animated.View>
     </View>
   );
 };
