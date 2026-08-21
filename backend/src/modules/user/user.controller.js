@@ -46,6 +46,28 @@ class UserController {
       next(error);
     }
   };
+
+  selectGrade = async (req, res, next) => {
+    try {
+      const { gradeId } = req.body;
+      const Grade = require('../curriculum/models/grade.model');
+      const grade = await Grade.findById(gradeId);
+      if (!grade || !grade.isEnabled) {
+        return next(require('../../utils/apiError').badRequest('Selected grade is not available or enabled'));
+      }
+
+      const user = await User.findByIdAndUpdate(
+        req.user._id,
+        { selectedGrade: gradeId },
+        { new: true }
+      ).populate('selectedGrade', 'number name description icon color');
+
+      return ApiResponse.success(res, 'Grade selected successfully', { user });
+    } catch (error) {
+      next(error);
+    }
+  };
 }
 
 module.exports = new UserController();
+

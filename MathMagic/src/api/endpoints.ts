@@ -15,8 +15,42 @@ export const ENDPOINTS = {
   USERS: {
     PROFILE: '/users/profile',
     PROGRESS: '/users/progress',
+    SELECT_GRADE: '/users/select-grade',
+  },
+  CURRICULUM: {
+    GRADES: '/curriculum/grades',
+    GRADE_DETAIL: (id: string) => `/curriculum/grades/${id}`,
+    TOPICS: (gradeId: string) => `/curriculum/grades/${gradeId}/topics`,
+    EXERCISES: (topicId: string) => `/curriculum/topics/${topicId}/exercises`,
+    EXERCISE_DETAIL: (id: string) => `/curriculum/exercises/${id}`,
+    PRACTICE_LEVELS: (exerciseId: string) => `/curriculum/exercises/${exerciseId}/practice-levels`,
+    PRACTICE_QUESTIONS: (levelId: string) => `/curriculum/practice-levels/${levelId}/questions`,
+  },
+  PROGRESS: {
+    TREE: '/progress',
+    ANSWER_LEARN: (exerciseId: string) => `/progress/exercises/${exerciseId}/answer`,
+    COMPLETE_LEARN: (exerciseId: string) => `/progress/exercises/${exerciseId}/complete`,
+    SUBMIT_PRACTICE: (levelId: string) => `/progress/practice-levels/${levelId}/submit`,
+  },
+  ADMIN: {
+    DASHBOARD: '/admin/dashboard',
+    GRADES: '/admin/grades',
+    GRADE_TOGGLE: (id: string) => `/admin/grades/${id}/toggle`,
+    TOPICS: (gradeId: string) => `/admin/grades/${gradeId}/topics`,
+    TOPIC_CREATE: '/admin/topics',
+    TOPIC_DETAIL: (id: string) => `/admin/topics/${id}`,
+    EXERCISES: (topicId: string) => `/admin/topics/${topicId}/exercises`,
+    EXERCISE_CREATE: '/admin/exercises',
+    EXERCISE_DETAIL: (id: string) => `/admin/exercises/${id}`,
+    PRACTICE_LEVELS: (exerciseId: string) => `/admin/exercises/${exerciseId}/practice-levels`,
+    PRACTICE_LEVEL_CREATE: '/admin/practice-levels',
+    PRACTICE_LEVEL_DETAIL: (id: string) => `/admin/practice-levels/${id}`,
+    QUESTIONS_BULK: '/admin/questions/bulk',
+    QUESTIONS: '/admin/questions',
+    QUESTION_DETAIL: (id: string) => `/admin/questions/${id}`,
   },
   MATH: {
     CURRICULUM_GRADE_1: '/math/curriculum/grade-1',
   },
 };
+

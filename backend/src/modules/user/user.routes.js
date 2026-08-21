@@ -9,5 +9,7 @@ router.use(authenticate);
 router.get('/profile', userController.getProfile);
 router.patch('/profile', userController.updateProfile);
 router.post('/progress', userController.updateGamification);
+router.patch('/select-grade', userController.selectGrade);
 
 module.exports = router;
+

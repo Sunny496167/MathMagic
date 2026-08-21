@@ -78,6 +78,12 @@ const userSchema = new mongoose.Schema(
       type: Date,
       select: false,
     },
+    // Active / Selected Grade for the student
+    selectedGrade: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Grade',
+      default: null,
+    },
     // Account Activity & Gamification baseline
     xp: {
       type: Number,

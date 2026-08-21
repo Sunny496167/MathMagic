@@ -10,6 +10,9 @@ const { errorHandler, notFoundHandler } = require('./middlewares/error.middlewar
 const authRoutes = require('./modules/auth/auth.routes');
 const userRoutes = require('./modules/user/user.routes');
 const mathRoutes = require('./modules/math/math.routes');
+const curriculumRoutes = require('./modules/curriculum/curriculum.routes');
+const adminRoutes = require('./modules/admin/admin.routes');
+const progressRoutes = require('./modules/progress/progress.routes');
 
 const app = express();
 
@@ -74,11 +77,21 @@ app.get('/health', (req, res) => {
 // 7. Mount Versioned API Routes (/api/v1/...)
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/curriculum', curriculumRoutes);
+app.use('/api/v1/admin', adminRoutes);
+app.use('/api/v1/progress', progressRoutes);
 app.use('/api/v1/math', mathRoutes);
+
+// Aliases for /api/grades, /api/v1/grades -> curriculum
+app.use('/api/v1/grades', curriculumRoutes);
+app.use('/api/grades', curriculumRoutes);
 
 // Backward compatibility alias for /api/auth/... -> /api/v1/auth/...
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/curriculum', curriculumRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/progress', progressRoutes);
 app.use('/api/math', mathRoutes);
 
 // 8. 404 & Error Handlers
@@ -86,3 +99,4 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 module.exports = app;
+
