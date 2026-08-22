@@ -49,7 +49,7 @@ export const QuestionFeedback: React.FC<QuestionFeedbackProps> = ({
             </Text>
             {isCorrect && feedback.xpEarned > 0 && (
               <Text className="text-emerald-700 text-xs font-bold font-inter">
-                +{feedback.xpEarned} XP Earned ⭐
+                +{feedback.xpEarned} XP Earned
               </Text>
             )}
           </View>
@@ -90,11 +90,11 @@ export const QuestionFeedback: React.FC<QuestionFeedbackProps> = ({
           {submittingCompletion
             ? 'Finishing Exercise...'
             : isLastQuestion
-            ? 'Complete Exercise 🎉'
+            ? 'Complete Exercise'
             : 'Next Question'}
         </Text>
         <Ionicons
-          name={isLastQuestion ? 'ribbon' : 'arrow-forward'}
+          name={isLastQuestion ? 'ribbon-outline' : 'arrow-forward'}
           size={16}
           color="#FFF"
         />

@@ -113,15 +113,29 @@ export const useExercisePlayer = (
   const handleCompleteExercise = async () => {
     if (!exercise) return;
     setSubmittingCompletion(true);
+    const localScorePercent = questions.length > 0 ? Math.round((score / questions.length) * 100) : 100;
+    const reqScore = exercise.completionRequirement?.minScore || 80;
+
     try {
       const res = await learnService.completeLearnExercise(exercise._id);
-      setCompletionResult(res);
+      const computedScore = typeof res.score === 'number' && !isNaN(res.score) ? res.score : localScorePercent;
+      const isPassed = res.passed !== undefined ? res.passed : computedScore >= reqScore;
+
+      setCompletionResult({
+        success: res.success !== undefined ? res.success : true,
+        score: computedScore,
+        requiredScore: res.requiredScore || reqScore,
+        passed: isPassed,
+        reason: res.reason,
+      });
       setMode('completed');
     } catch (err: any) {
       console.warn('Failed to complete exercise:', err.message);
       setCompletionResult({
         success: false,
-        score: Math.round((score / Math.max(questions.length, 1)) * 100),
+        score: localScorePercent,
+        requiredScore: reqScore,
+        passed: localScorePercent >= reqScore,
         reason: err.message,
       });
       setMode('completed');

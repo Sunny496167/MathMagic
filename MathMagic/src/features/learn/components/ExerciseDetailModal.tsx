@@ -152,9 +152,12 @@ export const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
                   >
                     <Text className="text-white font-black text-sm font-inter">
                       {questions.length > 0
-                        ? `Start Questions (${questions.length}) 🎯`
+                        ? `Start Questions (${questions.length})`
                         : 'No Questions Available'}
                     </Text>
+                    {questions.length > 0 && (
+                      <Ionicons name="arrow-forward" size={16} color="#FFF" />
+                    )}
                   </TouchableOpacity>
                 </View>
               </>

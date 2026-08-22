@@ -128,7 +128,7 @@ export const LearnScreen = () => {
                   Learning Topics
                 </Text>
                 <Text className="text-text-secondary text-xs font-semibold font-inter">
-                  Follow sequential path 🔒
+                  Sequential Progression
                 </Text>
               </View>
 

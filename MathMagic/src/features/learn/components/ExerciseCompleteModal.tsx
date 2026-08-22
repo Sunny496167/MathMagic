@@ -22,10 +22,10 @@ export const ExerciseCompleteModal: React.FC<ExerciseCompleteModalProps> = ({
   onClose,
   hasNextExercise = false,
 }) => {
-  if (!result) return null;
+  if (!visible || !result) return null;
 
   const passed = result.passed !== false && result.success !== false;
-  const score = result.score || 0;
+  const score = typeof result.score === 'number' ? result.score : 0;
   const reqScore = result.requiredScore || 80;
 
   return (
@@ -35,19 +35,19 @@ export const ExerciseCompleteModal: React.FC<ExerciseCompleteModalProps> = ({
           {/* Top Badge Icon */}
           <View
             className={`w-20 h-20 rounded-full items-center justify-center mb-4 shadow-md ${
-              passed ? 'bg-amber-100 border-4 border-amber-300' : 'bg-rose-100 border-4 border-rose-300'
+              passed ? 'bg-amber-50 border-4 border-amber-200' : 'bg-rose-50 border-4 border-rose-200'
             }`}
           >
             <Ionicons
               name={passed ? 'trophy' : 'refresh-circle'}
-              size={42}
+              size={38}
               color={passed ? '#D97706' : '#E11D48'}
             />
           </View>
 
           {/* Heading */}
           <Text className="text-slate-900 text-2xl font-black text-center font-inter tracking-tight">
-            {passed ? 'Mastery Achieved! 🎉' : 'Keep Going! 💪'}
+            {passed ? 'Mastery Achieved' : 'Keep Going'}
           </Text>
 
           <Text className="text-slate-500 text-xs font-semibold text-center font-inter mt-1 mb-5">
@@ -87,22 +87,22 @@ export const ExerciseCompleteModal: React.FC<ExerciseCompleteModalProps> = ({
           {passed ? (
             <View className="w-full bg-emerald-50 rounded-2xl p-3.5 border border-emerald-200 mb-6 gap-y-2">
               <View className="flex-row items-center gap-2">
-                <Ionicons name="lock-open" size={16} color="#059669" />
+                <Ionicons name="lock-open-outline" size={16} color="#059669" />
                 <Text className="text-emerald-900 text-xs font-bold font-inter flex-1">
-                  Next Exercise is now Unlocked! 🔓
+                  Next Exercise is now Unlocked
                 </Text>
               </View>
               <View className="flex-row items-center gap-2">
-                <Ionicons name="calculator" size={16} color="#059669" />
+                <Ionicons name="calculator-outline" size={16} color="#059669" />
                 <Text className="text-emerald-900 text-xs font-bold font-inter flex-1">
-                  Practice Drill Levels Unlocked in Practice Tab! 🧮
+                  Practice Drill Levels Unlocked in Practice Tab
                 </Text>
               </View>
             </View>
           ) : (
             <View className="w-full bg-rose-50 rounded-2xl p-3.5 border border-rose-200 mb-6">
               <Text className="text-rose-900 text-xs font-medium text-center font-inter">
-                You need at least {reqScore}% to unlock the next exercise and practice drills. Review the concepts and try again!
+                You need at least {reqScore}% to unlock the next exercise and practice drills. Review the concepts and try again.
               </Text>
             </View>
           )}
@@ -116,8 +116,9 @@ export const ExerciseCompleteModal: React.FC<ExerciseCompleteModalProps> = ({
                 className="w-full py-4 rounded-2xl bg-primary items-center justify-center flex-row gap-2 shadow-sm"
               >
                 <Text className="text-white font-black text-sm font-inter">
-                  Next Exercise →
+                  Next Exercise
                 </Text>
+                <Ionicons name="arrow-forward" size={16} color="#FFF" />
               </TouchableOpacity>
             )}
 

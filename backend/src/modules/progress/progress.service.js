@@ -289,8 +289,14 @@ class ProgressService {
     const exercise = await Exercise.findById(exerciseId);
     if (!exercise) throw ApiError.notFound('Exercise not found');
 
+    const totalQuestions = await Question.countDocuments({ exercise: exerciseId, context: 'learn', isPublished: true });
     const progress = await this.getOrCreateProgress(userId, exercise.grade);
     let ep = progress.exerciseProgress.find((e) => e.exercise.toString() === exerciseId.toString());
+
+    const correctCount = ep ? ep.answers.filter((a) => a.isCorrect).length : 0;
+    const finalScore = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 100;
+    const requiredScore = exercise.completionRequirement?.minScore || 80;
+    const passed = finalScore >= requiredScore;
 
     if (!ep) {
       progress.exerciseProgress.push({
@@ -299,16 +305,25 @@ class ProgressService {
         status: 'completed',
         contentRead: true,
         answers: [],
-        score: 100,
+        score: finalScore,
         completedAt: new Date(),
       });
     } else {
+      ep.score = finalScore;
       ep.status = 'completed';
       ep.completedAt = new Date();
     }
 
     await progress.save();
-    return { success: true, message: 'Exercise marked completed. Practice levels unlocked!' };
+    return {
+      success: true,
+      score: finalScore,
+      totalCorrect: correctCount,
+      totalQuestions,
+      requiredScore,
+      passed,
+      message: 'Exercise marked completed. Practice levels unlocked!',
+    };
   }
 
   /**
