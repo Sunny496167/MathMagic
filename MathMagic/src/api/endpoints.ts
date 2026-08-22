@@ -54,5 +54,10 @@ export const ENDPOINTS = {
   MATH: {
     CURRICULUM_GRADE_1: '/math/curriculum/grade-1',
   },
+  GAMES: {
+    AVAILABLE: '/games/available',
+    GENERATE: '/games/generate',
+    SESSION: '/games/session',
+  },
 };
 

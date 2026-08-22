@@ -13,6 +13,7 @@ const mathRoutes = require('./modules/math/math.routes');
 const curriculumRoutes = require('./modules/curriculum/curriculum.routes');
 const adminRoutes = require('./modules/admin/admin.routes');
 const progressRoutes = require('./modules/progress/progress.routes');
+const gameRoutes = require('./modules/game/game.routes');
 
 const app = express();
 
@@ -80,6 +81,7 @@ app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/curriculum', curriculumRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/progress', progressRoutes);
+app.use('/api/v1/games', gameRoutes);
 app.use('/api/v1/math', mathRoutes);
 
 // Aliases for /api/grades, /api/v1/grades -> curriculum
@@ -92,6 +94,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/curriculum', curriculumRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/progress', progressRoutes);
+app.use('/api/games', gameRoutes);
 app.use('/api/math', mathRoutes);
 
 // 8. 404 & Error Handlers
