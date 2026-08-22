@@ -204,6 +204,25 @@ class AdminController {
       next(error);
     }
   };
+
+  // Student Progress
+  getStudents = async (req, res, next) => {
+    try {
+      const students = await adminService.getStudents(req.query);
+      return ApiResponse.success(res, 'Students fetched successfully', students);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getStudentProgress = async (req, res, next) => {
+    try {
+      const progress = await adminService.getStudentProgress(req.params.id, req.query.gradeId);
+      return ApiResponse.success(res, 'Student progress fetched successfully', progress);
+    } catch (error) {
+      next(error);
+    }
+  };
 }
 
 module.exports = new AdminController();

@@ -13,6 +13,9 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { apiClient } from '../../../api/client';
 import { ENDPOINTS } from '../../../api/endpoints';
+import { StudentListItem } from '../types/adminStudent.types';
+import StudentCard from './admin/StudentCard';
+import StudentProgressDetailModal from './admin/StudentProgressDetailModal';
 
 interface AdminPortalModalProps {
   visible: boolean;
@@ -20,6 +23,7 @@ interface AdminPortalModalProps {
   onRefreshCurriculum: () => void;
 }
 
+type AdminMode = 'curriculum' | 'students';
 type AdminViewLevel = 'grades' | 'topics' | 'exercises' | 'levels' | 'questions';
 
 export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
@@ -28,7 +32,15 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
   onRefreshCurriculum,
 }) => {
   const [loading, setLoading] = useState(false);
+  const [adminMode, setAdminMode] = useState<AdminMode>('curriculum');
   const [viewLevel, setViewLevel] = useState<AdminViewLevel>('grades');
+
+  // Student Progress State
+  const [students, setStudents] = useState<StudentListItem[]>([]);
+  const [loadingStudents, setLoadingStudents] = useState(false);
+  const [studentSearch, setStudentSearch] = useState('');
+  const [selectedGradeFilter, setSelectedGradeFilter] = useState<string | null>(null);
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
 
   // Selected Breadcrumb Entities
   const [selectedGrade, setSelectedGrade] = useState<any>(null);
@@ -87,8 +99,11 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
   useEffect(() => {
     if (visible) {
       loadGradesAndStats();
+      if (adminMode === 'students') {
+        loadStudents();
+      }
     }
-  }, [visible]);
+  }, [visible, adminMode]);
 
   const loadGradesAndStats = async () => {
     setLoading(true);
@@ -103,6 +118,24 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
       console.warn('Failed to load admin data:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadStudents = async (search = studentSearch, gradeId = selectedGradeFilter) => {
+    setLoadingStudents(true);
+    try {
+      let url = ENDPOINTS.ADMIN.STUDENTS;
+      const params: string[] = [];
+      if (search) params.push(`search=${encodeURIComponent(search)}`);
+      if (gradeId) params.push(`gradeId=${encodeURIComponent(gradeId)}`);
+      if (params.length > 0) url += `?${params.join('&')}`;
+
+      const res = await apiClient.get(url);
+      setStudents(res.data?.data || []);
+    } catch (err: any) {
+      console.warn('Failed to load students:', err.message);
+    } finally {
+      setLoadingStudents(false);
     }
   };
 
@@ -416,17 +449,19 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
       <View className="flex-1 bg-black/75 justify-end">
         <View className="bg-white rounded-t-[36px] h-[90%] p-6 flex-col">
           {/* Top Bar */}
-          <View className="flex-row justify-between items-center pb-3 border-b border-slate-100">
+          <View className="flex-row justify-between items-center pb-3 border-b border-slate-100 mb-2">
             <View className="flex-row items-center gap-2">
               <View className="w-10 h-10 rounded-xl bg-amber-400/20 items-center justify-center">
                 <Ionicons name="shield-checkmark" size={22} color="#D97706" />
               </View>
               <View>
                 <Text className="text-text-primary text-base font-bold font-inter">
-                  Admin Curriculum Suite
+                  Admin Management Portal
                 </Text>
-                <Text className="text-text-secondary text-xs">
-                  Create Grades, Topics, Subtopics & Questions
+                <Text className="text-text-secondary text-xs font-medium font-inter">
+                  {adminMode === 'curriculum'
+                    ? 'Curriculum, Subtopics & Question Bank'
+                    : 'Student Progress, Streaks & Mastery Tree'}
                 </Text>
               </View>
             </View>
@@ -439,124 +474,278 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
             </TouchableOpacity>
           </View>
 
-          {/* Breadcrumb Bar */}
-          <View className="flex-row items-center py-2.5 flex-wrap gap-1 border-b border-slate-100 mb-3">
+          {/* Mode Switcher */}
+          <View className="flex-row bg-slate-100 p-1 rounded-2xl mb-3">
             <TouchableOpacity
-              onPress={() => {
-                setViewLevel('grades');
-                setCreatingType(null);
-              }}
-              className={`px-2.5 py-1 rounded-lg flex-row items-center gap-1 ${
-                viewLevel === 'grades' ? 'bg-primary' : 'bg-slate-100'
+              onPress={() => setAdminMode('curriculum')}
+              activeOpacity={0.8}
+              className={`flex-1 py-2 rounded-xl items-center flex-row justify-center gap-1.5 ${
+                adminMode === 'curriculum' ? 'bg-white shadow-xs' : ''
               }`}
             >
               <Ionicons
-                name="school-outline"
-                size={12}
-                color={viewLevel === 'grades' ? '#FFFFFF' : '#64748B'}
+                name="library-outline"
+                size={14}
+                color={adminMode === 'curriculum' ? '#8B5CF6' : '#64748B'}
               />
               <Text
-                className={`text-xs font-bold ${
-                  viewLevel === 'grades' ? 'text-white' : 'text-slate-600'
+                className={`text-xs font-bold font-inter ${
+                  adminMode === 'curriculum' ? 'text-primary' : 'text-slate-600'
                 }`}
               >
-                Grades
+                Curriculum Suite
               </Text>
             </TouchableOpacity>
 
-            {selectedGrade && (
-              <>
-                <Ionicons name="chevron-forward" size={12} color="#94A3B8" />
-                <TouchableOpacity
-                  onPress={() => {
-                    setViewLevel('topics');
-                    setCreatingType(null);
-                  }}
-                  className={`px-2.5 py-1 rounded-lg flex-row items-center gap-1 ${
-                    viewLevel === 'topics' ? 'bg-primary' : 'bg-slate-100'
-                  }`}
-                >
-                  <Ionicons
-                    name="book-outline"
-                    size={12}
-                    color={viewLevel === 'topics' ? '#FFFFFF' : '#64748B'}
-                  />
-                  <Text
-                    className={`text-xs font-bold ${
-                      viewLevel === 'topics' ? 'text-white' : 'text-slate-600'
-                    }`}
-                  >
-                    {selectedGrade.name}
-                  </Text>
-                </TouchableOpacity>
-              </>
-            )}
-
-            {selectedTopic && viewLevel !== 'topics' && (
-              <>
-                <Ionicons name="chevron-forward" size={12} color="#94A3B8" />
-                <TouchableOpacity
-                  onPress={() => {
-                    setViewLevel('exercises');
-                    setCreatingType(null);
-                  }}
-                  className={`px-2.5 py-1 rounded-lg flex-row items-center gap-1 ${
-                    viewLevel === 'exercises' ? 'bg-primary' : 'bg-slate-100'
-                  }`}
-                >
-                  <Ionicons
-                    name="document-text-outline"
-                    size={12}
-                    color={viewLevel === 'exercises' ? '#FFFFFF' : '#64748B'}
-                  />
-                  <Text
-                    className={`text-xs font-bold ${
-                      viewLevel === 'exercises' ? 'text-white' : 'text-slate-600'
-                    }`}
-                    numberOfLines={1}
-                  >
-                    {selectedTopic.title}
-                  </Text>
-                </TouchableOpacity>
-              </>
-            )}
-
-            {selectedExercise && (viewLevel === 'levels' || viewLevel === 'questions') && (
-              <>
-                <Ionicons name="chevron-forward" size={12} color="#94A3B8" />
-                <TouchableOpacity
-                  onPress={() => {
-                    setViewLevel('levels');
-                    setCreatingType(null);
-                  }}
-                  className={`px-2.5 py-1 rounded-lg flex-row items-center gap-1 ${
-                    viewLevel === 'levels' ? 'bg-primary' : 'bg-slate-100'
-                  }`}
-                >
-                  <Ionicons
-                    name="trophy-outline"
-                    size={12}
-                    color={viewLevel === 'levels' ? '#FFFFFF' : '#64748B'}
-                  />
-                  <Text
-                    className={`text-xs font-bold ${
-                      viewLevel === 'levels' ? 'text-white' : 'text-slate-600'
-                    }`}
-                  >
-                    Practice Levels
-                  </Text>
-                </TouchableOpacity>
-              </>
-            )}
+            <TouchableOpacity
+              onPress={() => {
+                setAdminMode('students');
+                loadStudents();
+              }}
+              activeOpacity={0.8}
+              className={`flex-1 py-2 rounded-xl items-center flex-row justify-center gap-1.5 ${
+                adminMode === 'students' ? 'bg-white shadow-xs' : ''
+              }`}
+            >
+              <Ionicons
+                name="people-outline"
+                size={14}
+                color={adminMode === 'students' ? '#8B5CF6' : '#64748B'}
+              />
+              <Text
+                className={`text-xs font-bold font-inter ${
+                  adminMode === 'students' ? 'text-primary' : 'text-slate-600'
+                }`}
+              >
+                Student Progress
+              </Text>
+            </TouchableOpacity>
           </View>
+
+          {/* Breadcrumb Bar (Visible in Curriculum mode) */}
+          {adminMode === 'curriculum' && (
+            <View className="flex-row items-center py-2.5 flex-wrap gap-1 border-b border-slate-100 mb-3">
+              <TouchableOpacity
+                onPress={() => {
+                  setViewLevel('grades');
+                  setCreatingType(null);
+                }}
+                className={`px-2.5 py-1 rounded-lg flex-row items-center gap-1 ${
+                  viewLevel === 'grades' ? 'bg-primary' : 'bg-slate-100'
+                }`}
+              >
+                <Ionicons
+                  name="school-outline"
+                  size={12}
+                  color={viewLevel === 'grades' ? '#FFFFFF' : '#64748B'}
+                />
+                <Text
+                  className={`text-xs font-bold ${
+                    viewLevel === 'grades' ? 'text-white' : 'text-slate-600'
+                  }`}
+                >
+                  Grades
+                </Text>
+              </TouchableOpacity>
+
+              {selectedGrade && (
+                <>
+                  <Ionicons name="chevron-forward" size={12} color="#94A3B8" />
+                  <TouchableOpacity
+                    onPress={() => {
+                      setViewLevel('topics');
+                      setCreatingType(null);
+                    }}
+                    className={`px-2.5 py-1 rounded-lg flex-row items-center gap-1 ${
+                      viewLevel === 'topics' ? 'bg-primary' : 'bg-slate-100'
+                    }`}
+                  >
+                    <Ionicons
+                      name="book-outline"
+                      size={12}
+                      color={viewLevel === 'topics' ? '#FFFFFF' : '#64748B'}
+                    />
+                    <Text
+                      className={`text-xs font-bold ${
+                        viewLevel === 'topics' ? 'text-white' : 'text-slate-600'
+                      }`}
+                    >
+                      {selectedGrade.name}
+                    </Text>
+                  </TouchableOpacity>
+                </>
+              )}
+
+              {selectedTopic && viewLevel !== 'topics' && (
+                <>
+                  <Ionicons name="chevron-forward" size={12} color="#94A3B8" />
+                  <TouchableOpacity
+                    onPress={() => {
+                      setViewLevel('exercises');
+                      setCreatingType(null);
+                    }}
+                    className={`px-2.5 py-1 rounded-lg flex-row items-center gap-1 ${
+                      viewLevel === 'exercises' ? 'bg-primary' : 'bg-slate-100'
+                    }`}
+                  >
+                    <Ionicons
+                      name="document-text-outline"
+                      size={12}
+                      color={viewLevel === 'exercises' ? '#FFFFFF' : '#64748B'}
+                    />
+                    <Text
+                      className={`text-xs font-bold ${
+                        viewLevel === 'exercises' ? 'text-white' : 'text-slate-600'
+                      }`}
+                      numberOfLines={1}
+                    >
+                      {selectedTopic.title}
+                    </Text>
+                  </TouchableOpacity>
+                </>
+              )}
+
+              {selectedExercise && (viewLevel === 'levels' || viewLevel === 'questions') && (
+                <>
+                  <Ionicons name="chevron-forward" size={12} color="#94A3B8" />
+                  <TouchableOpacity
+                    onPress={() => {
+                      setViewLevel('levels');
+                      setCreatingType(null);
+                    }}
+                    className={`px-2.5 py-1 rounded-lg flex-row items-center gap-1 ${
+                      viewLevel === 'levels' ? 'bg-primary' : 'bg-slate-100'
+                    }`}
+                  >
+                    <Ionicons
+                      name="trophy-outline"
+                      size={12}
+                      color={viewLevel === 'levels' ? '#FFFFFF' : '#64748B'}
+                    />
+                    <Text
+                      className={`text-xs font-bold ${
+                        viewLevel === 'levels' ? 'text-white' : 'text-slate-600'
+                      }`}
+                    >
+                      Practice Levels
+                    </Text>
+                  </TouchableOpacity>
+                </>
+              )}
+            </View>
+          )}
 
           {/* Main Scrollable Body */}
           <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-            {loading && (
-              <View className="py-4 items-center">
-                <ActivityIndicator color="#8B5CF6" />
+            {adminMode === 'students' ? (
+              <View className="pb-8">
+                {/* Search Bar */}
+                <View className="flex-row items-center bg-slate-50 border border-slate-200 rounded-2xl px-3.5 py-2.5 mb-3">
+                  <Ionicons name="search-outline" size={16} color="#94A3B8" />
+                  <TextInput
+                    value={studentSearch}
+                    onChangeText={(text) => {
+                      setStudentSearch(text);
+                      loadStudents(text, selectedGradeFilter);
+                    }}
+                    placeholder="Search by student name or email..."
+                    placeholderTextColor="#94A3B8"
+                    className="flex-1 ml-2 text-xs text-slate-800 font-inter"
+                  />
+                  {studentSearch ? (
+                    <TouchableOpacity
+                      onPress={() => {
+                        setStudentSearch('');
+                        loadStudents('', selectedGradeFilter);
+                      }}
+                    >
+                      <Ionicons name="close-circle" size={16} color="#94A3B8" />
+                    </TouchableOpacity>
+                  ) : null}
+                </View>
+
+                {/* Grade Filters */}
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-4">
+                  <TouchableOpacity
+                    onPress={() => {
+                      setSelectedGradeFilter(null);
+                      loadStudents(studentSearch, null);
+                    }}
+                    activeOpacity={0.8}
+                    className={`px-3 py-1.5 rounded-full mr-2 border ${
+                      selectedGradeFilter === null
+                        ? 'bg-primary border-primary'
+                        : 'bg-slate-50 border-slate-200'
+                    }`}
+                  >
+                    <Text
+                      className={`text-xs font-bold font-inter ${
+                        selectedGradeFilter === null ? 'text-white' : 'text-slate-600'
+                      }`}
+                    >
+                      All Grades ({students.length})
+                    </Text>
+                  </TouchableOpacity>
+                  {grades.map((g) => (
+                    <TouchableOpacity
+                      key={g._id}
+                      onPress={() => {
+                        setSelectedGradeFilter(g._id);
+                        loadStudents(studentSearch, g._id);
+                      }}
+                      activeOpacity={0.8}
+                      className={`px-3 py-1.5 rounded-full mr-2 border ${
+                        selectedGradeFilter === g._id
+                          ? 'bg-primary border-primary'
+                          : 'bg-slate-50 border-slate-200'
+                      }`}
+                    >
+                      <Text
+                        className={`text-xs font-bold font-inter ${
+                          selectedGradeFilter === g._id ? 'text-white' : 'text-slate-600'
+                        }`}
+                      >
+                        {g.name}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+
+                {/* Students List */}
+                {loadingStudents ? (
+                  <View className="py-12 items-center justify-center">
+                    <ActivityIndicator size="large" color="#8B5CF6" />
+                    <Text className="text-slate-400 text-xs font-bold font-inter mt-3">
+                      Loading registered students...
+                    </Text>
+                  </View>
+                ) : students.length === 0 ? (
+                  <View className="py-12 items-center justify-center bg-slate-50 rounded-3xl border border-slate-100">
+                    <Ionicons name="people-outline" size={36} color="#94A3B8" />
+                    <Text className="text-slate-800 font-bold text-sm font-inter mt-2">
+                      No Students Found
+                    </Text>
+                    <Text className="text-slate-400 text-xs font-inter mt-1">
+                      No students match the current search or grade filter.
+                    </Text>
+                  </View>
+                ) : (
+                  students.map((st) => (
+                    <StudentCard
+                      key={st._id}
+                      student={st}
+                      onPress={() => setSelectedStudentId(st._id)}
+                    />
+                  ))
+                )}
               </View>
-            )}
+            ) : (
+              <>
+                {loading && (
+                  <View className="py-4 items-center">
+                    <ActivityIndicator color="#8B5CF6" />
+                  </View>
+                )}
 
             {/* ======================================================== */}
             {/* LEVEL 0: GRADES VIEW */}
@@ -1109,7 +1298,16 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                 </TouchableOpacity>
               </View>
             )}
+              </>
+            )}
           </ScrollView>
+
+          {/* Student Progress Deep Inspector Modal */}
+          <StudentProgressDetailModal
+            visible={selectedStudentId !== null}
+            studentId={selectedStudentId}
+            onClose={() => setSelectedStudentId(null)}
+          />
         </View>
       </View>
     </Modal>

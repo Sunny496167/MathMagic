@@ -1,5 +1,13 @@
 export * from './types/practice.types';
+export * from './services/practiceService';
 export * from './services/questionGenerator';
-export * from './hooks/usePracticeSession';
+export * from './hooks/usePracticeFeed';
+export * from './hooks/useDrillSession';
+export * from './components/PracticeStatsHeader';
+export * from './components/PracticeLevelRow';
+export * from './components/PracticeExerciseGroup';
+export * from './components/DrillQuestionPlayer';
+export * from './components/DrillResultSummary';
+export * from './components/DrillSessionModal';
 export * from './PracticeScreen';
 export { default } from './PracticeScreen';

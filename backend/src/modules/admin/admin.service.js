@@ -4,6 +4,7 @@ const Exercise = require('../curriculum/models/exercise.model');
 const PracticeLevel = require('../curriculum/models/practiceLevel.model');
 const Question = require('../question/question.model');
 const User = require('../user/user.model');
+const UserProgress = require('../progress/progress.model');
 const ApiError = require('../../utils/apiError');
 
 class AdminService {
@@ -92,7 +93,7 @@ class AdminService {
   }
 
   async getExercisesByTopic(topicId) {
-    return await Exercise.find({ topic: topicId }).sort({ order: 1 });
+    return await Exercise.find({ topic: topicId }).sort({ order: 1, subtopicNumber: 1 });
   }
 
   async updateExercise(id, updates) {
@@ -101,10 +102,10 @@ class AdminService {
     return exercise;
   }
 
-  async updateExerciseContent(id, blocks) {
+  async updateExerciseContent(id, contentData) {
     const exercise = await Exercise.findById(id);
     if (!exercise) throw ApiError.notFound('Exercise not found');
-    exercise.learningContent = { blocks };
+    exercise.learningContent = contentData;
     await exercise.save();
     return exercise;
   }
@@ -189,6 +190,171 @@ class AdminService {
       practiceLevels: levelsCount,
       questions: questionsCount,
       students: studentsCount,
+    };
+  }
+
+  // --- STUDENTS & PROGRESS ---
+  async getStudents(filters = {}) {
+    const { search, gradeId } = filters;
+    const query = { role: { $ne: 'admin' } };
+
+    if (search) {
+      const regex = new RegExp(search, 'i');
+      query.$or = [{ name: regex }, { email: regex }];
+    }
+
+    if (gradeId) {
+      query.selectedGrade = gradeId;
+    }
+
+    const students = await User.find(query)
+      .populate('selectedGrade', 'number name description icon color')
+      .sort({ createdAt: -1 });
+
+    const studentList = await Promise.all(
+      students.map(async (student) => {
+        const targetGradeId = student.selectedGrade?._id || student.selectedGrade;
+        let progress = null;
+        if (targetGradeId) {
+          progress = await UserProgress.findOne({ user: student._id, grade: targetGradeId });
+        }
+
+        const stats = progress?.stats || {
+          totalQuestionsAnswered: 0,
+          totalCorrectAnswers: 0,
+          overallAccuracy: 0,
+          exercisesCompleted: 0,
+          topicsCompleted: 0,
+          practiceLevelsCompleted: 0,
+          totalXp: student.xp || 0,
+          currentStreak: student.streak || 0,
+        };
+
+        return {
+          _id: student._id,
+          name: student.name,
+          email: student.email,
+          avatar: student.avatar,
+          role: student.role,
+          isActive: student.isActive,
+          selectedGrade: student.selectedGrade,
+          xp: student.xp || 0,
+          streak: student.streak || 0,
+          stats,
+          createdAt: student.createdAt,
+          lastLoginAt: student.lastLoginAt,
+        };
+      })
+    );
+
+    return studentList;
+  }
+
+  async getStudentProgress(studentId, gradeId) {
+    const student = await User.findById(studentId).populate('selectedGrade', 'number name description icon color');
+    if (!student) throw ApiError.notFound('Student not found');
+
+    const targetGradeId = gradeId || student.selectedGrade?._id || student.selectedGrade;
+    if (!targetGradeId) {
+      return {
+        student,
+        grade: null,
+        stats: {
+          totalQuestionsAnswered: 0,
+          totalCorrectAnswers: 0,
+          overallAccuracy: 0,
+          exercisesCompleted: 0,
+          topicsCompleted: 0,
+          practiceLevelsCompleted: 0,
+          totalXp: student.xp || 0,
+          currentStreak: student.streak || 0,
+        },
+        topics: [],
+      };
+    }
+
+    const grade = await Grade.findById(targetGradeId);
+    let progress = await UserProgress.findOne({ user: studentId, grade: targetGradeId });
+    if (!progress) {
+      progress = await UserProgress.create({
+        user: studentId,
+        grade: targetGradeId,
+        exerciseProgress: [],
+        practiceLevelProgress: [],
+      });
+    }
+
+    const rawTopics = await Topic.find({ grade: targetGradeId, isPublished: true }).sort({ order: 1 });
+    const fullTopics = await Promise.all(
+      rawTopics.map(async (topic) => {
+        const exercises = await Exercise.find({ topic: topic._id, isPublished: true }).sort({ order: 1 });
+        const exWithProgress = await Promise.all(
+          exercises.map(async (ex) => {
+            const ep = progress.exerciseProgress.find((p) => p.exercise.toString() === ex._id.toString());
+            const practiceLevels = await PracticeLevel.find({ exercise: ex._id, isPublished: true }).sort({ order: 1 });
+
+            const levelsWithProgress = practiceLevels.map((lvl) => {
+              const plp = progress.practiceLevelProgress.find((p) => p.practiceLevel.toString() === lvl._id.toString());
+              return {
+                _id: lvl._id,
+                number: lvl.number,
+                title: lvl.title,
+                difficulty: lvl.difficulty,
+                questionCount: lvl.questionCount,
+                passingScore: lvl.passingScore,
+                status: plp?.status || 'locked',
+                bestScore: plp?.bestScore || 0,
+                mastery: plp?.mastery || 0,
+                attemptsCount: plp?.attempts?.length || 0,
+                completed: plp?.completed || false,
+                completedAt: plp?.completedAt || null,
+              };
+            });
+
+            return {
+              _id: ex._id,
+              title: ex.title,
+              subtopicNumber: ex.subtopicNumber,
+              status: ep?.status || 'locked',
+              contentRead: ep?.contentRead || false,
+              score: ep?.score || 0,
+              answersCount: ep?.answers?.length || 0,
+              completedAt: ep?.completedAt || null,
+              practiceLevels: levelsWithProgress,
+            };
+          })
+        );
+
+        const allCompleted = exWithProgress.length > 0 && exWithProgress.every((e) => e.status === 'completed');
+        const topicStatus = allCompleted ? 'completed' : exWithProgress.some((e) => e.status !== 'locked') ? 'in_progress' : 'locked';
+
+        return {
+          _id: topic._id,
+          title: topic.title,
+          icon: topic.icon,
+          color: topic.color,
+          order: topic.order,
+          status: topicStatus,
+          exercises: exWithProgress,
+        };
+      })
+    );
+
+    return {
+      student: {
+        _id: student._id,
+        name: student.name,
+        email: student.email,
+        avatar: student.avatar,
+        selectedGrade: student.selectedGrade,
+        xp: student.xp || 0,
+        streak: student.streak || 0,
+        createdAt: student.createdAt,
+        lastLoginAt: student.lastLoginAt,
+      },
+      grade,
+      stats: progress.stats,
+      topics: fullTopics,
     };
   }
 }

@@ -53,4 +53,8 @@ router.get('/questions/:id', questionController.getQuestionById);
 router.patch('/questions/:id', validate(questionValidation.updateQuestionSchema), questionController.updateQuestion);
 router.delete('/questions/:id', questionController.deleteQuestion);
 
+// Student Progress Viewer
+router.get('/students', adminController.getStudents);
+router.get('/students/:id/progress', adminController.getStudentProgress);
+
 module.exports = router;

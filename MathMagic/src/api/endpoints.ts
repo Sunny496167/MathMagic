@@ -48,6 +48,8 @@ export const ENDPOINTS = {
     QUESTIONS_BULK: '/admin/questions/bulk',
     QUESTIONS: '/admin/questions',
     QUESTION_DETAIL: (id: string) => `/admin/questions/${id}`,
+    STUDENTS: '/admin/students',
+    STUDENT_PROGRESS: (id: string) => `/admin/students/${id}/progress`,
   },
   MATH: {
     CURRICULUM_GRADE_1: '/math/curriculum/grade-1',
