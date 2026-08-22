@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "IQVenus",
-    "slug": "iqvenus",
+    "name": "MathMagic",
+    "slug": "mathmagic",
     "version": "1.0.0",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
@@ -10,7 +10,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.iqvenus.mobile",
+      "bundleIdentifier": "com.mathmagic.mobile",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -24,7 +24,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.iqvenus.mobile"
+      "package": "com.mathmagic.mobile"
     },
     "web": {
       "output": "static",
@@ -65,14 +65,14 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "df8a8015-639b-40be-8168-2f5851aa497f"
+        "projectId": "3402dc17-c303-468f-8881-91d95185cede"
       }
     },
     "runtimeVersion": {
       "policy": "appVersion"
     },
     "updates": {
-      "url": "https://u.expo.dev/df8a8015-639b-40be-8168-2f5851aa497f"
+      "url": "https://u.expo.dev/3402dc17-c303-468f-8881-91d95185cede"
     }
   }
 }

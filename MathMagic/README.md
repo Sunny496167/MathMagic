@@ -1,208 +1,361 @@
-# MathMagic — Mobile App (React Native & Expo) 📱✨
+# 📱 MathMagic Mobile App (React Native & Expo)
 
-**MathMagic** is an interactive, gamified Grade 1 mathematics learning mobile application built with **React Native**, **Expo SDK**, **Expo Router**, and **NativeWind (Tailwind CSS)**.
-
----
-
-## 🛠️ Tech Stack
-
-- **Framework**: [React Native](https://reactnative.dev/) & [Expo](https://expo.dev/) (SDK 52)
-- **Routing**: [Expo Router](https://docs.expo.dev/router/introduction/) (File-based navigation with tab and stack navigators)
-- **Styling**: [NativeWind](https://www.nativewind.dev/) (Tailwind CSS for React Native)
-- **Data Fetching & State**: [TanStack React Query](https://tanstack.com/query/latest) & React Context
-- **Networking**: [Axios](https://axios-http.com/) with automatic Refresh Token rotation interceptor
-- **Secure Storage**: [Expo SecureStore](https://docs.expo.dev/versions/latest/sdk/securestore/) for JWT Access & Refresh tokens
-- **Animations & Feedback**: [react-native-reanimated](https://docs.swmansion.com/react-native-reanimated/), [expo-haptics](https://docs.expo.dev/versions/latest/sdk/haptics/)
-- **Icons & Graphics**: [@expo/vector-icons](https://icons.expo.fyi/), [react-native-svg](https://github.com/software-mansion/react-native-svg), [expo-linear-gradient](https://docs.expo.dev/versions/latest/sdk/linear-gradient/)
-- **OAuth**: Google Sign-In via `@react-native-google-signin/google-signin`
+> **Gamified, interactive Grade 1–5 Mathematics Learning App** built with **React Native**, **Expo SDK 52**, **Expo Router**, **NativeWind (Tailwind CSS)**, and **TanStack Query**.
 
 ---
 
-## 📁 Scalable Feature-Based Architecture
+## 📑 Table of Contents
+
+1. [Overview & Highlights](#-overview--highlights)
+2. [Tech Stack & Dependencies](#-tech-stack--dependencies)
+3. [Architecture & Feature-Sliced Structure](#-architecture--feature-sliced-structure)
+4. [Routing & Navigation Architecture](#-routing--navigation-architecture)
+5. [Core Feature Domains](#-core-feature-domains)
+   - [1. Authentication & Onboarding](#1-authentication--onboarding)
+   - [2. Home Dashboard & Daily Missions](#2-home-dashboard--daily-missions)
+   - [3. Curriculum & Learn Mode](#3-curriculum--learn-mode)
+   - [4. Practice Drills & Custom Keypad](#4-practice-drills--custom-keypad)
+   - [5. Speed Math Arcade Games](#5-speed-math-arcade-games)
+   - [6. User Profile, Progress Tree & Admin CMS](#6-user-profile-progress-tree--admin-cms)
+   - [7. Embedded AI Support Tutor](#7-embedded-ai-support-tutor)
+6. [State Management & Networking](#-state-management--networking)
+   - [TanStack React Query Patterns](#tanstack-react-query-patterns)
+   - [Axios Refresh Token Interceptor](#axios-refresh-token-interceptor)
+   - [SecureStore Encryption Layer](#securestore-encryption-layer)
+7. [Theme Tokens & Design System](#-theme-tokens--design-system)
+8. [Local Development & Setup](#-local-development--setup)
+9. [Build & Release Guide (EAS)](#-build--release-guide-eas)
+
+---
+
+## 🌟 Overview & Highlights
+
+MathMagic delivers an immersive mobile learning experience tailored for children, educators, and parents. It transforms abstract mathematical concepts into visual stories, responsive drills, and arcade games with instant feedback.
+
+```
+┌───────────────────────────────────────────────────────────┐
+│                 MathMagic Mobile App                      │
+└─────────────────────────────┬─────────────────────────────┘
+                              │
+  ┌──────────────┬────────────┼────────────┬─────────────┐
+  ▼              ▼            ▼            ▼             ▼
+┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐
+│  Home    │ │  Learn   │ │ Practice │ │  Arcade  │ │ Profile  │
+│Dashboard │ │  Engine  │ │  Drills  │ │  Games   │ │  & Tree  │
+└──────────┘ └──────────┘ └──────────┘ └──────────┘ └──────────┘
+```
+
+### ✨ Mobile Capabilities
+- **File-Based Routing via Expo Router**: Clean URL-like navigation with deep link handling.
+- **Micro-Interactions & Haptics**: Smooth animations powered by `react-native-reanimated` and physical vibration feedback on success/failure via `expo-haptics`.
+- **Custom In-App Keypad**: Big, child-friendly numeric input for lightning-fast arithmetic drills.
+- **Offline-Resilient Auth**: Automatic token refresh rotation with Expo SecureStore persistence.
+- **Real-time AI Chatbot**: Built-in interactive math tutor to assist students with step-by-step problem solving.
+- **In-App Admin CMS**: Instant access for teachers/administrators to manage curriculum directly on mobile.
+
+---
+
+## 🛠️ Tech Stack & Dependencies
+
+| Area | Package | Version | Purpose |
+| :--- | :--- | :--- | :--- |
+| **Core Framework** | `react-native` / `expo` | `0.76.7` / `~52.0.0` | Mobile application runtime |
+| **Navigation** | `expo-router` | `~4.0.17` | Type-safe file-based router |
+| **Styling** | `nativewind` / `tailwindcss` | `^4.0.1` / `^3.3.2` | Utility-first styling engine |
+| **Server State** | `@tanstack/react-query` | `^5.66.9` | Caching, deduplication & sync |
+| **HTTP Client** | `axios` | `^1.7.9` | Network communication & interceptors |
+| **Secure Storage** | `expo-secure-store` | `~14.0.1` | Hardware-backed token encryption |
+| **Animations** | `react-native-reanimated` | `~3.16.1` | Native thread UI animations |
+| **OAuth** | `@react-native-google-signin` | `^13.1.0` | Google Sign-In SDK |
+| **Sensory Feedback**| `expo-haptics` | `~14.0.1` | Tactile haptic triggers |
+| **Visual Elements** | `expo-linear-gradient`, `react-native-svg` | `~14.0.1` / `15.8.0` | Glassmorphism, gradients & vector art |
+
+---
+
+## 📁 Architecture & Feature-Sliced Structure
 
 ```text
 MathMagic/
-├── app/                                 # Expo Router (Clean Route Entrypoints Only)
-│   ├── (auth)/
-│   │   ├── _layout.tsx                  # Auth stack layout & redirection
-│   │   └── index.tsx                    # -> Renders @features/auth
-│   ├── (tabs)/
-│   │   ├── _layout.tsx                  # Bottom tab navigator with blur effect
-│   │   ├── index.tsx                    # -> Renders @features/practice
-│   │   ├── game.tsx                     # -> Renders @features/game
-│   │   ├── learn.tsx                    # -> Renders @features/learn
-│   │   └── profile.tsx                  # -> Renders @features/profile
-│   ├── _layout.tsx                      # Root Layout (Fonts, React Query, AuthProvider)
-│   └── index.tsx                        # Root splash / redirection gate
+├── app/                                 # Expo Router Navigation Layer
+│   ├── (auth)/                          # Authentication group
+│   │   ├── _layout.tsx                  # Auth stack navigator
+│   │   └── index.tsx                    # -> Renders @features/auth/AuthScreen
+│   ├── (profile)/                       # Profile child screens
+│   │   └── personal-info.tsx            # Edit name, phone, change password
+│   ├── (tabs)/                          # Main bottom tab navigator
+│   │   ├── _layout.tsx                  # Tab bar layout (glass blur & icons)
+│   │   ├── index.tsx                    # -> Renders @features/home/HomeScreen
+│   │   ├── learn.tsx                    # -> Renders @features/learn/LearnScreen
+│   │   ├── practice.tsx                 # -> Renders @features/practice/PracticeScreen
+│   │   ├── game.tsx                     # -> Renders @features/game/GameScreen
+│   │   └── profile.tsx                  # -> Renders @features/profile/ProfileScreen
+│   ├── _layout.tsx                      # Root layout (AuthProvider, QueryClient)
+│   ├── index.tsx                        # Splash gatekeeper (redirects to auth or tabs)
+│   ├── oauth-native-callback.tsx        # Deep-link OAuth receiver
+│   └── support-chatbot.tsx              # Standalone AI Support Tutor Screen
 │
-└── src/
-    ├── api/                             # Network & API Client Layer
-    │   ├── client.ts                    # Axios instance, Bearer tokens & token rotation
-    │   ├── config.ts                    # Dynamic Platform & Environment API URL resolver
-    │   ├── endpoints.ts                 # Centralized API endpoint constants
+└── src/                                 # Feature-Sliced Application Core
+    ├── api/                             # Network & API Integration
+    │   ├── client.ts                    # Axios instance with refresh interceptor
+    │   ├── config.ts                    # Dynamic IP/Platform host resolver
+    │   ├── endpoints.ts                 # Centralized endpoint dictionary
     │   └── index.ts
     │
-    ├── components/                      # Shared Reusable UI Components
+    ├── components/                      # Shared Global UI Primitives
     │   ├── common/
-    │   │   ├── SafeScreen.tsx           # Notch & SafeArea padding wrapper
-    │   │   ├── LoadingState.tsx         # Standard loading spinner view
-    │   │   ├── ErrorState.tsx           # Standard error with retry view
-    │   │   ├── EmptyState.tsx           # Standard empty state illustration
-    │   │   └── index.ts
+    │   │   ├── SafeScreen.tsx           # Notch & status bar safe area wrapper
+    │   │   ├── LoadingState.tsx         # Branded loading spinner
+    │   │   ├── ErrorState.tsx           # Error alert with retry button
+    │   │   └── EmptyState.tsx           # Friendly empty list illustration
     │   └── index.ts
     │
-    ├── constants/                       # Design Tokens, Keys & Config
+    ├── constants/                       # Theme Tokens & System Constants
     │   └── index.ts                     # COLORS, STORAGE_KEYS, THEME
     │
-    ├── context/                         # Global Application Contexts
-    │   ├── AuthContext.tsx              # User authentication session state
+    ├── context/                         # Application Contexts
+    │   ├── AuthContext.tsx              # User state, login, logout, token hooks
     │   └── index.ts
     │
-    ├── features/                        # Sliced Feature Domains
-    │   ├── auth/                        # 🔐 Authentication
-    │   │   ├── components/              # BackgroundDecorations, WelcomeView, AuthFormView
-    │   │   ├── hooks/                   # useAuthScreen (Form state & submit handlers)
+    ├── features/                        # Domain Feature Slices
+    │   ├── auth/                        # 🔐 Auth Domain
+    │   │   ├── components/              # AuthFormView, WelcomeView, BackgroundDecorations
+    │   │   ├── hooks/                   # useAuthScreen form handler
     │   │   ├── services/                # authService (Login, Register, Google OAuth)
-    │   │   ├── types/                   # auth.types.ts
-    │   │   ├── AuthScreen.tsx           # Composed Auth screen
-    │   │   └── index.ts
+    │   │   └── AuthScreen.tsx
     │   │
-    │   ├── practice/                    # 🧮 Practice Sessions
-    │   │   ├── components/              # PracticeStatsHeader, TopicSelector, PracticeQuestionView
-    │   │   ├── hooks/                   # usePracticeSession (State machine & feedback)
-    │   │   ├── services/                # questionGenerator (Dynamic question creator)
-    │   │   ├── types/                   # practice.types.ts
-    │   │   ├── PracticeScreen.tsx
-    │   │   └── index.ts
+    │   ├── home/                        # 🏠 Home Dashboard
+    │   │   ├── components/              # HomeHeader, DailyMissionsCard, ContinueLearningCard,
+    │   │   │                            # MathFactCard, WeeklyActivityCard, QuickShortcutsGrid
+    │   │   ├── hooks/                   # useHomeDashboard
+    │   │   └── HomeScreen.tsx
     │   │
-    │   ├── game/                        # ⚡ Speed Math Game
-    │   │   ├── components/              # GameIdleView, GamePlayingView, GameOverModal
-    │   │   ├── hooks/                   # useMathGame (Timer, scoring, custom keypad)
-    │   │   ├── types/                   # game.types.ts
-    │   │   ├── GameScreen.tsx
-    │   │   └── index.ts
+    │   ├── learn/                       # 📖 Curriculum & Learning
+    │   │   ├── components/              # TopicCard, ExerciseCard, ExerciseDetailModal,
+    │   │   │                            # ContentBlockRenderer, QuestionPlayer, QuestionFeedback,
+    │   │   │                            # ExerciseCompleteModal
+    │   │   ├── hooks/                   # useCurriculumData
+    │   │   └── LearnScreen.tsx
     │   │
-    │   ├── learn/                       # 📖 Lessons & Concepts
-    │   │   ├── components/              # LessonCard, LessonDetailModal
-    │   │   ├── constants/               # lessonsData (Grade 1 math lessons)
-    │   │   ├── hooks/                   # useLessonProgress (Mastery & checkpoint quizzes)
-    │   │   ├── types/                   # learn.types.ts
-    │   │   ├── LearnScreen.tsx
-    │   │   └── index.ts
+    │   ├── practice/                    # 🧮 Practice Drills
+    │   │   ├── components/              # TopicSelector, PracticeExerciseGroup, PracticeLevelRow,
+    │   │   │                            # DrillSessionModal, DrillQuestionPlayer, DrillResultSummary,
+    │   │   │                            # PracticeStatsHeader
+    │   │   ├── hooks/                   # usePracticeSession
+    │   │   └── PracticeScreen.tsx
     │   │
-    │   └── profile/                     # 👤 Profile & Progress
-    │       ├── components/              # ProfileHeaderCard, ProfileStatsRow, ProfileMenuSection
-    │       ├── hooks/                   # useProfileData (XP level calculation, stats reset)
-    │       ├── types/                   # profile.types.ts
-    │       ├── ProfileScreen.tsx
-    │       └── index.ts
+    │   ├── game/                        # ⚡ Arcade Games
+    │   │   ├── components/              # GameCard, ActiveGameRunnerModal, GameCountdown,
+    │   │   │                            # GameHUD, GamePlayingView, GameOverModal, GameResultModal,
+    │   │   │                            # games/ (QuickMath, NumberMatch, MemoryMath, MathCatch, MixedRecall)
+    │   │   ├── hooks/                   # useMathGame
+    │   │   └── GameScreen.tsx
+    │   │
+    │   └── profile/                     # 👤 User Profile & Admin
+    │       ├── components/              # ProfileHeaderCard, ProfileStatsGrid, ProfileStatsRow,
+    │       │                            # ProfileMenuSection, GradeSelectorCard, GradePickerModal,
+    │       │                            # ProgressTreeView, AdminEntryButton, AdminPortalModal
+    │       ├── hooks/                   # useProfileData
+    │       └── ProfileScreen.tsx
     │
     ├── hooks/                           # Shared Global Hooks
-    │   ├── useHapticFeedback.ts         # Cross-platform haptic feedback
-    │   └── index.ts
+    │   └── useHapticFeedback.ts         # Cross-platform haptics
     │
-    ├── services/                        # Storage & Device Services
-    │   ├── tokenStorage.ts              # SecureStore Access & Refresh Token storage
-    │   ├── statsStorage.ts              # SecureStore stats, streak, & XP storage
-    │   └── index.ts
+    ├── services/                        # Native Services
+    │   ├── tokenStorage.ts              # SecureStore JWT manager
+    │   └── statsStorage.ts              # SecureStore offline stats
     │
-    └── types/                           # Global Shared Type Definitions
-        └── index.ts                     # UserProfile, UserStats, Grade1Question, etc.
+    └── types/                           # Global Type Definitions
+        └── index.ts                     # UserProfile, Question, Lesson, ProgressTree types
 ```
 
 ---
 
-## 🔗 Path Aliases
+## 🧭 Routing & Navigation Architecture
 
-Path aliases configured in `tsconfig.json` allow clean imports:
+Expo Router provides file-based routing with full type safety:
 
-```ts
-import { useAuth } from '@/src/context/AuthContext';
-import { apiClient, ENDPOINTS } from '@api/index';
-import { SafeScreen } from '@components/common';
-import { AuthScreen } from '@features/auth';
-import { PracticeScreen } from '@features/practice';
-import { useHapticFeedback } from '@hooks/useHapticFeedback';
-import { tokenStorage, statsStorage } from '@services/index';
+```mermaid
+flowchart TD
+    Root["app/_layout.tsx\n(Root Wrapper)"] --> Splash["app/index.tsx\n(Gatekeeper)"]
+    
+    Splash -->|Unauthenticated| AuthStack["app/(auth)/_layout.tsx"]
+    AuthStack --> AuthScreen["app/(auth)/index.tsx"]
+    
+    Splash -->|Authenticated| Tabs["app/(tabs)/_layout.tsx"]
+    Tabs --> TabHome["(tabs)/index.tsx ➔ Home"]
+    Tabs --> TabLearn["(tabs)/learn.tsx ➔ Learn"]
+    Tabs --> TabPractice["(tabs)/practice.tsx ➔ Practice"]
+    Tabs --> TabGame["(tabs)/game.tsx ➔ Arcade Games"]
+    Tabs --> TabProfile["(tabs)/profile.tsx ➔ Profile & Admin"]
+    
+    TabProfile --> PersonalInfo["app/(profile)/personal-info.tsx"]
+    Tabs -.-> Chatbot["app/support-chatbot.tsx (Modal / Screen)"]
 ```
 
 ---
 
-## 🔐 Authentication & Session Flow
+## 🎯 Core Feature Domains
 
-```text
-[ React Native Expo ]
-       │
-       ▼ (1. Login / Register / Google Sign-In)
-[ POST /api/v1/auth/login ] ──► [ Express Backend ]
-       ▲                              │
-       │                              ▼ (2. Return Tokens)
-[ Expo SecureStore ] ◄──────── { accessToken, refreshToken, user }
-       │
-       ▼ (3. All Requests carry Header: Authorization: Bearer <accessToken>)
-[ Protected Endpoints ]
-       │
-       ▼ (4. On Token Expiration: 401 Unauthorized)
-[ Axios Interceptor: POST /api/v1/auth/refresh { refreshToken } ]
-       │
-       ▼ (5. Receive New Tokens -> Update SecureStore -> Retry Request)
-[ Successful Request Retried ]
+### 1. Authentication & Onboarding
+- **Clean Split View**: Toggle between *Sign In*, *Create Account*, and *Forgot Password*.
+- **Google One-Tap**: Seamless sign-in with Google OAuth.
+- **Deep-Link Password Reset**: Handles `mathmagic://reset-password?token=...` automatically.
+
+### 2. Home Dashboard & Daily Missions
+- **Personalized Header**: Displays current student avatar, XP balance, and active daily streak flame.
+- **Daily Missions**: 3 daily objectives with interactive **Claim** buttons that award XP directly.
+- **Continue Learning**: Smart shortcut leading directly to the student's next unfinished subtopic.
+- **Math Fact of the Day**: Curated daily mathematical trivia to inspire curiosity.
+- **Weekly Activity Chart**: Visual bar graph summarizing daily question volume.
+
+### 3. Curriculum & Learn Mode
+- **Hierarchical Navigation**: Select a Topic ➔ View Subtopic Exercises ➔ Open Lesson Reader.
+- **Dynamic Content Blocks**: Renders headings, explanatory text, mathematical formulas, example boxes, and visual tips.
+- **Interactive Checkpoint Quizzes**: Embedded questions that validate understanding before marking the subtopic as completed.
+- **Celebration Modal**: Animated completion dialogue awarding XP and unlocking subsequent topics.
+
+### 4. Practice Drills & Custom Keypad
+- **Progressive Difficulty Levels**: Level 1 (Beginner) through Level 5 (Advanced) per exercise.
+- **Drill Engine**: Rapid-fire question sessions (30-50 questions) with live score counters.
+- **Custom Numeric Keypad**: Oversized buttons, haptic feedback, and instant validation.
+- **Post-Drill Summary**: Accuracy breakdown, speed analytics, mastery percentage calculation, and an itemized mistake review list.
+
+### 5. Speed Math Arcade Games
+- **5 Built-In Game Modes**:
+  1. ⚡ **Quick Math**: Rapid arithmetic blitz under dynamic countdown pressure.
+  2. 🧩 **Number Match**: Pair mathematical expressions with their evaluated results.
+  3. 🧠 **Memory Math**: Card-flip memory matching game for arithmetic facts.
+  4. 🍎 **Math Catch**: Catch the correct falling number before it hits the ground.
+  5. 🔄 **Mixed Recall**: Rapidly alternating operators and question types.
+- **Combo Engine**: Success streaks build combo multipliers up to 3x.
+- **Star Rating System**: Scores award 1, 2, or 3 stars based on performance benchmarks.
+
+### 6. User Profile, Progress Tree & Admin CMS
+- **XP Level Computation**: Level formula `Level = Math.floor(xp / 100) + 1` with an animated progress bar to the next level.
+- **Grade Picker**: Modal to switch active grade curriculum (Grade 1 through 5).
+- **Progress Tree Visualizer**: Visual breakdown of mastery percentages across all topics and exercises.
+- **In-App Admin CMS**: Gated for users with the `admin` role, providing full mobile management of Grades, Topics, Exercises, Practice Levels, Question Bank (7 types), and Student analytics.
+
+### 7. Embedded AI Support Tutor (`support-chatbot.tsx`)
+- Full-screen conversational AI interface.
+- Quick prompt buttons (*"How do I practice addition?"*, *"Explain fractions"*, *"What is a streak?"*).
+- Markdown response renderer for mathematical formulas and bullet points.
+
+---
+
+## ⚡ State Management & Networking
+
+### TanStack React Query Patterns
+All remote server data is cached and synchronized using React Query:
+
+```typescript
+// Example: Fetching Home Dashboard with automated caching
+export const useHomeDashboard = () => {
+  return useQuery({
+    queryKey: ['home-dashboard'],
+    queryFn: async () => {
+      const response = await apiClient.get<ApiResponse<HomeDashboardData>>(
+        ENDPOINTS.PROGRESS.HOME_DASHBOARD
+      );
+      return response.data.data;
+    },
+    staleTime: 1000 * 60 * 2, // 2 minutes
+  });
+};
+```
+
+### Axios Refresh Token Interceptor
+`src/api/client.ts` implements a resilient queue-based refresh mechanism:
+
+1. Inbound 401 responses trigger the interceptor.
+2. The failing request is queued while a refresh request is dispatched to `/api/v1/auth/refresh`.
+3. Upon receiving new tokens, the tokens are saved to SecureStore, and queued requests are retried with the new `Bearer` header.
+4. If refresh fails, the session is invalidated and the user is redirected to the Auth screen.
+
+### SecureStore Encryption Layer
+- `tokenStorage.ts`: Persists `accessToken` and `refreshToken` in device secure hardware storage.
+- `statsStorage.ts`: Provides local offline caching for XP and streaks.
+
+---
+
+## 🎨 Theme Tokens & Design System
+
+Defined in `src/constants/index.ts` and `tailwind.config.js`:
+
+```typescript
+export const COLORS = {
+  primary: '#6366F1',    // Indigo Accent
+  secondary: '#EC4899',  // Pink Glow
+  success: '#10B981',    // Emerald Green
+  warning: '#F59E0B',    // Amber Gold
+  danger: '#EF4444',     // Crimson Red
+  darkBg: '#0F172A',     // Slate Dark Background
+  cardBg: '#1E293B',     // Slate Dark Surface
+  textPrimary: '#F8FAFC',
+  textSecondary: '#94A3B8',
+};
 ```
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Local Development & Setup
 
-### 1. Prerequisites
+### 📋 Prerequisites
+- **Node.js**: `v18+`
+- **Expo Go App** (installed on your iOS or Android physical device) or an active Emulator
 
-- Node.js (v18+)
-- Expo CLI (`npm install -g expo-cli`)
-- iOS Simulator (macOS) / Android Emulator (Android Studio) / Expo Go app on physical device
+---
 
-### 2. Configure Backend API URL
-
-Create or update `.env` in `MathMagic/`:
-
-```env
-# Point to your local development machine IP (e.g. 192.168.1.XX) or production URL
-EXPO_PUBLIC_API_URL=http://192.168.31.201:5000/api/v1
-EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=your_google_web_client_id.apps.googleusercontent.com
-```
-
-### 3. Install Dependencies
-
+### Step 1: Install Dependencies
 ```bash
 cd MathMagic
 npm install
 ```
 
-### 4. Start the Expo Development Server
+### Step 2: Configure Environment (`.env`)
+Create a `.env` file in the `MathMagic/` root:
+```env
+# Point to your development computer's local IP address and backend port
+EXPO_PUBLIC_API_URL=http://192.168.1.100:5000/api/v1
+EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=your_google_web_client_id.apps.googleusercontent.com
+```
 
+### Step 3: Start Expo Server
 ```bash
 npx expo start
 ```
 
-- Press `a` to run on Android Emulator.
-- Press `i` to run on iOS Simulator.
-- Press `w` to run on Web.
-- Scan the QR code using the **Expo Go** app on your physical device.
+- Press `a` to open in Android Emulator.
+- Press `i` to open in iOS Simulator.
+- Press `w` to open in Web Browser.
+- Scan QR code with Expo Go on a physical phone.
 
 ---
 
-## 🎮 Main Features
+## 📦 Build & Release Guide (EAS)
 
-1. **Practice Tab (`/`)**:
-   - Categorized practice in Addition, Subtraction, Multiplication, Division, and Fractions.
-   - Dynamic 3-level difficulty scaling (Easy, Medium, Hard).
-   - Real-time feedback with sound/haptic triggers and XP accumulation.
-2. **Speed Game Tab (`/game`)**:
-   - 60-second speed math blitz.
-   - Custom in-app numeric keypad for fast tapping.
-   - High-score leaderboard tracking in SecureStore.
-3. **Learn Tab (`/learn`)**:
-   - Step-by-step visual lessons with formulas and walkthroughs.
-   - Embedded checkpoints that test learner comprehension before awarding mastery badges.
-4. **Profile Tab (`/profile`)**:
-   - Real-time XP level calculations (`Level = Math.floor(xp / 100) + 1`).
-   - Streak tracker and lesson completion stats.
-   - Session logout with server-side token revocation.
+MathMagic is configured for **Expo Application Services (EAS Build)**:
+
+```bash
+# 1. Install EAS CLI
+npm install -g eas-cli
+
+# 2. Log in to Expo account
+eas login
+
+# 3. Configure project
+eas build:configure
+
+# 4. Build APK for Android Testing
+eas build -p android --profile preview
+
+# 5. Build Production Binaries
+eas build -p android --profile production
+eas build -p ios --profile production
+```
+
+---
+
+<div align="center">
+  <sub>MathMagic Mobile • Designed with ❤️ for Joyful Learning</sub>
+</div>

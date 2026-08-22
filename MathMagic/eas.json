@@ -15,7 +15,7 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://iqvenus-backend.onrender.com/api",
+        "EXPO_PUBLIC_API_URL": "https://mathmagic-zm70.onrender.com/api/v1",
         "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "44625448894-23liuhn1oq4km3stvhpsdu985a9i0ifr.apps.googleusercontent.com"
       }
     },
@@ -23,7 +23,7 @@
       "channel": "production",
       "autoIncrement": true,
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://iqvenus-backend.onrender.com/api",
+        "EXPO_PUBLIC_API_URL": "https://mathmagic-zm70.onrender.com/api/v1",
         "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "44625448894-23liuhn1oq4km3stvhpsdu985a9i0ifr.apps.googleusercontent.com"
       }
     }

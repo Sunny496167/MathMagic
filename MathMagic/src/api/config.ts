@@ -16,7 +16,7 @@ export const getApiBaseUrl = (): string => {
     return `http://${HOST}:5000/api/v1`;
   }
 
-  return 'https://iqvenus-backend.onrender.com/api/v1';
+  return 'https://mathmagic-zm70.onrender.com/api/v1';
 };
 
 export const API_BASE_URL = getApiBaseUrl();
