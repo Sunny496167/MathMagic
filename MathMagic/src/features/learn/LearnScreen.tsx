@@ -22,6 +22,7 @@ export const LearnScreen = () => {
     loadingTopics,
     topics,
     activeTopic,
+    activeGradeName,
     loadingExercises,
     exercises,
     selectedExercise,
@@ -43,7 +44,8 @@ export const LearnScreen = () => {
   const totalTopics = topics.length;
   const overallProgress = totalTopics > 0 ? (completedTopics / totalTopics) * 100 : 0;
 
-  const activeGradeName =
+  const currentGradeTitle =
+    activeGradeName ||
     user?.selectedGrade?.name ||
     (typeof user?.selectedGrade === 'string' ? 'Grade 1' : 'Grade 1');
 
@@ -59,7 +61,7 @@ export const LearnScreen = () => {
             <Text className="text-text-secondary text-xs font-semibold font-inter mt-0.5">
               {activeTopic
                 ? `${exercises.length} Step-by-Step Exercises`
-                : `${activeGradeName} • Step-by-Step Concept Mastery`}
+                : `${currentGradeTitle} • Step-by-Step Concept Mastery`}
             </Text>
           </View>
 
@@ -101,23 +103,31 @@ export const LearnScreen = () => {
           {!activeTopic ? (
             <>
               {/* Overall Progress Banner */}
-              <View className="bg-primary rounded-3xl p-6 mb-6 shadow-md relative overflow-hidden">
+              <View
+                style={{ backgroundColor: '#8B5CF6' }}
+                className="rounded-2xl p-5 mb-6 shadow-md relative overflow-hidden"
+              >
                 <View className="flex-row justify-between items-center mb-3">
                   <View className="flex-row items-center gap-2">
-                    <Ionicons name="school" size={18} color="#FFF" />
+                    <View className="w-7 h-7 rounded-lg bg-white/20 items-center justify-center">
+                      <Ionicons name="school" size={16} color="#FFFFFF" />
+                    </View>
                     <Text className="text-white text-base font-black font-inter">
-                      {activeGradeName} Progress
+                      {currentGradeTitle} Progress
                     </Text>
                   </View>
-                  <Text className="text-white/90 font-bold text-xs font-inter">
-                    {completedTopics} / {totalTopics} Topics Mastered
+                  <Text className="text-white font-bold text-xs font-inter bg-white/20 px-2.5 py-1 rounded-full">
+                    {completedTopics} / {totalTopics} Mastered
                   </Text>
                 </View>
 
-                <View className="h-3 bg-white/20 rounded-full overflow-hidden">
+                <View className="h-2.5 bg-white/30 rounded-full overflow-hidden mt-1">
                   <View
-                    style={{ width: `${Math.min(overallProgress, 100)}%` }}
-                    className="h-full bg-white rounded-full"
+                    style={{
+                      width: `${Math.min(overallProgress, 100)}%`,
+                      backgroundColor: '#FFFFFF',
+                    }}
+                    className="h-full rounded-full"
                   />
                 </View>
               </View>

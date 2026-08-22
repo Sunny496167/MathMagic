@@ -680,13 +680,13 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
             {/* ======================================================== */}
             {viewLevel === 'topics' && (
               <View className="gap-y-3 pb-8">
-                <View className="flex-row justify-between items-center">
-                  <Text className="text-text-primary text-sm font-bold font-inter">
+                <View className="flex-row justify-between items-center gap-2 mb-1">
+                  <Text className="text-text-primary text-sm font-bold font-inter flex-1 mr-2" numberOfLines={1}>
                     Topics in {selectedGrade?.name}
                   </Text>
                   <TouchableOpacity
                     onPress={() => setCreatingType(creatingType === 'topic' ? null : 'topic')}
-                    className="bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl flex-row items-center gap-1"
+                    className="bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl flex-row items-center gap-1 shrink-0"
                   >
                     <Ionicons name="add-circle" size={16} color="#10B981" />
                     <Text className="text-emerald-700 text-xs font-bold font-inter">
@@ -805,13 +805,13 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
             {/* ======================================================== */}
             {viewLevel === 'exercises' && (
               <View className="gap-y-3 pb-8">
-                <View className="flex-row justify-between items-center">
-                  <Text className="text-text-primary text-sm font-bold font-inter">
+                <View className="flex-row justify-between items-center gap-2 mb-1">
+                  <Text className="text-text-primary text-sm font-bold font-inter flex-1 mr-2" numberOfLines={1}>
                     Subtopics in {selectedTopic?.title}
                   </Text>
                   <TouchableOpacity
                     onPress={() => setCreatingType(creatingType === 'exercise' ? null : 'exercise')}
-                    className="bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-xl flex-row items-center gap-1"
+                    className="bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-xl flex-row items-center gap-1 shrink-0"
                   >
                     <Ionicons name="add-circle" size={16} color="#3B82F6" />
                     <Text className="text-blue-700 text-xs font-bold font-inter">
@@ -956,13 +956,13 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
             {/* ======================================================== */}
             {viewLevel === 'levels' && (
               <View className="gap-y-3 pb-8">
-                <View className="flex-row justify-between items-center">
-                  <Text className="text-text-primary text-sm font-bold font-inter">
+                <View className="flex-row justify-between items-center gap-2 mb-1">
+                  <Text className="text-text-primary text-sm font-bold font-inter flex-1 mr-2" numberOfLines={1}>
                     Practice Levels in {selectedExercise?.title}
                   </Text>
                   <TouchableOpacity
                     onPress={() => setCreatingType(creatingType === 'level' ? null : 'level')}
-                    className="bg-purple-50 border border-purple-200 px-3 py-1.5 rounded-xl flex-row items-center gap-1"
+                    className="bg-purple-50 border border-purple-200 px-3 py-1.5 rounded-xl flex-row items-center gap-1 shrink-0"
                   >
                     <Ionicons name="add-circle" size={16} color="#8B5CF6" />
                     <Text className="text-purple-700 text-xs font-bold font-inter">

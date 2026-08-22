@@ -9,6 +9,11 @@ import {
 } from '../types/learn.types';
 
 export const learnService = {
+  async fetchEnabledGrades(): Promise<any[]> {
+    const res = await apiClient.get(ENDPOINTS.CURRICULUM.GRADES);
+    return res.data?.data || [];
+  },
+
   async fetchTopicsForGrade(gradeId: string): Promise<TopicItem[]> {
     const res = await apiClient.get(ENDPOINTS.CURRICULUM.TOPICS(gradeId));
     return res.data?.data || [];

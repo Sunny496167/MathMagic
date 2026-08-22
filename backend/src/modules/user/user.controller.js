@@ -4,7 +4,10 @@ const ApiResponse = require('../../utils/apiResponse');
 class UserController {
   getProfile = async (req, res, next) => {
     try {
-      const user = await User.findById(req.user._id);
+      const user = await User.findById(req.user._id).populate(
+        'selectedGrade',
+        'number name description icon color isEnabled'
+      );
       return ApiResponse.success(res, 'User profile', { user });
     } catch (error) {
       next(error);

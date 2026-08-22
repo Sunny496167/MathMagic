@@ -11,22 +11,44 @@ export const useLearnCurriculum = () => {
   const [loadingTopics, setLoadingTopics] = useState(false);
   const [topics, setTopics] = useState<TopicItem[]>([]);
   const [activeTopic, setActiveTopic] = useState<TopicItem | null>(null);
+  const [activeGradeName, setActiveGradeName] = useState<string>('Grade 1');
 
   const [loadingExercises, setLoadingExercises] = useState(false);
   const [exercises, setExercises] = useState<ExerciseItem[]>([]);
   const [selectedExercise, setSelectedExercise] = useState<ExerciseItem | null>(null);
 
   const loadTopics = useCallback(async () => {
-    if (!user) return;
     setLoadingTopics(true);
     try {
-      const gradeId = user.selectedGrade?._id || user.selectedGrade || '';
+      let gradeId =
+        user?.selectedGrade?._id ||
+        (typeof user?.selectedGrade === 'string' ? user.selectedGrade : '');
+
+      let name = user?.selectedGrade?.name || '';
+
       if (!gradeId) {
-        setTopics([]);
-        return;
+        // Fallback: fetch available enabled grades
+        const enabledGrades = await learnService.fetchEnabledGrades();
+        if (enabledGrades && enabledGrades.length > 0) {
+          const g1 = enabledGrades.find((g: any) => g.number === 1) || enabledGrades[0];
+          gradeId = g1._id;
+          name = g1.name || `Grade ${g1.number}`;
+        }
+      } else if (!name) {
+        const enabledGrades = await learnService.fetchEnabledGrades();
+        const matched = enabledGrades.find((g: any) => g._id.toString() === gradeId.toString());
+        if (matched) {
+          name = matched.name;
+        }
       }
-      const data = await learnService.fetchTopicsForGrade(gradeId);
-      setTopics(data);
+
+      if (gradeId) {
+        setActiveGradeName(name || 'Grade 1');
+        const data = await learnService.fetchTopicsForGrade(gradeId);
+        setTopics(data || []);
+      } else {
+        setTopics([]);
+      }
     } catch (err: any) {
       console.warn('Failed to load topics for grade:', err.message);
     } finally {
@@ -45,7 +67,7 @@ export const useLearnCurriculum = () => {
     setLoadingExercises(true);
     try {
       const exData = await learnService.fetchExercisesForTopic(topic._id);
-      setExercises(exData);
+      setExercises(exData || []);
     } catch (err: any) {
       console.warn('Failed to load exercises for topic:', err.message);
     } finally {
@@ -71,7 +93,7 @@ export const useLearnCurriculum = () => {
     if (activeTopic) {
       // Reload exercises to update unlock states
       const exData = await learnService.fetchExercisesForTopic(activeTopic._id);
-      setExercises(exData);
+      setExercises(exData || []);
     }
     loadTopics();
   };
@@ -80,6 +102,7 @@ export const useLearnCurriculum = () => {
     loadingTopics,
     topics,
     activeTopic,
+    activeGradeName,
     loadingExercises,
     exercises,
     selectedExercise,

@@ -45,6 +45,7 @@ module.exports = {
       fontFamily: {
         serif: ["PlayfairDisplay", "serif"],
         sans: ["Inter", "sans-serif"],
+        inter: ["Inter", "sans-serif"],
       },
     },
   },

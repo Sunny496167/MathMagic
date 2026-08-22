@@ -29,7 +29,10 @@ const authenticate = async (req, res, next) => {
     const decoded = verifyAccessToken(token);
 
     // 3. Ensure user still exists and is active
-    const user = await User.findById(decoded.userId);
+    const user = await User.findById(decoded.userId).populate(
+      'selectedGrade',
+      'number name description icon color isEnabled'
+    );
     if (!user || !user.isActive) {
       return next(ApiError.unauthorized('User not found or account is deactivated'));
     }
