@@ -223,11 +223,27 @@ class CurriculumService {
     const practiceLevel = await PracticeLevel.findById(practiceLevelId);
     if (!practiceLevel) throw ApiError.notFound('Practice level not found');
 
-    const questions = await Question.find({
+    const rawQuestions = await Question.find({
       practiceLevel: practiceLevelId,
       context: 'practice',
       isPublished: true,
     }).sort({ order: 1 });
+
+    // Deduplicate questions by trimmed question text
+    const seenTexts = new Set();
+    const uniqueQuestions = [];
+
+    for (const q of rawQuestions) {
+      const normalized = String(q.text || '').trim().toLowerCase();
+      if (!seenTexts.has(normalized)) {
+        seenTexts.add(normalized);
+        uniqueQuestions.push(q);
+      }
+    }
+
+    // Respect level target question count
+    const targetCount = practiceLevel.questionCount || 30;
+    const questions = uniqueQuestions.slice(0, targetCount);
 
     return {
       practiceLevel,
