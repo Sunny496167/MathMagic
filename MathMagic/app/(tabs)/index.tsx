@@ -1,5 +1,5 @@
-import { PracticeScreen } from '../../src/features/practice';
+import { HomeScreen } from '../../src/features/home';
 
-export default function PracticeRoute() {
-  return <PracticeScreen />;
+export default function HomeRoute() {
+  return <HomeScreen />;
 }

@@ -439,6 +439,252 @@ class ProgressService {
       bestScore: plp.bestScore,
     };
   }
+
+  /**
+   * Home Dashboard: Assembles greeting, enrolled grade, next continue lesson,
+   * daily missions, 7-day activity history, and math fact of the day.
+   */
+  async getHomeDashboard(userId) {
+    const user = await User.findById(userId).populate('selectedGrade');
+    let grade = user?.selectedGrade;
+
+    if (!grade) {
+      grade = await Grade.findOne({ isEnabled: true }).sort({ order: 1, number: 1 });
+    }
+
+    const progress = grade ? await this.getOrCreateProgress(userId, grade._id) : null;
+
+    // 1. Next "Continue Learning" lesson
+    let continueLesson = null;
+    if (grade) {
+      const topics = await Topic.find({ grade: grade._id, isPublished: true }).sort({ order: 1 });
+      const topicIds = topics.map((t) => t._id);
+      const exercises = await Exercise.find({ topic: { $in: topicIds }, isPublished: true }).sort({
+        order: 1,
+        subtopicNumber: 1,
+      });
+
+      const completedExIds = new Set(
+        (progress?.exerciseProgress || [])
+          .filter((ep) => ep.status === 'completed')
+          .map((ep) => ep.exercise.toString())
+      );
+
+      // Find first uncompleted exercise
+      let nextExercise = exercises.find((ex) => !completedExIds.has(ex._id.toString()));
+      if (!nextExercise && exercises.length > 0) {
+        nextExercise = exercises[exercises.length - 1]; // All completed, review last
+      }
+
+      if (nextExercise) {
+        const parentTopic = topics.find((t) => t._id.toString() === nextExercise.topic.toString());
+        continueLesson = {
+          exerciseId: nextExercise._id,
+          exerciseTitle: nextExercise.title,
+          subtopicNumber: nextExercise.subtopicNumber,
+          topicId: parentTopic?._id,
+          topicTitle: parentTopic?.title || 'Current Topic',
+          color: nextExercise.color || parentTopic?.color || '#8B5CF6',
+          icon: nextExercise.icon || 'book-outline',
+          isCompleted: completedExIds.has(nextExercise._id.toString()),
+        };
+      }
+    }
+
+    // 2. Daily Missions calculation for today
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    // Count today's learn lessons
+    let learnCompletedToday = 0;
+    let practiceQuestionsToday = 0;
+
+    (progress?.exerciseProgress || []).forEach((ep) => {
+      if (ep.completedAt && new Date(ep.completedAt) >= startOfToday) {
+        learnCompletedToday++;
+      }
+    });
+
+    (progress?.practiceLevelProgress || []).forEach((plp) => {
+      (plp.attempts || []).forEach((att) => {
+        if (att.completedAt && new Date(att.completedAt) >= startOfToday) {
+          practiceQuestionsToday += att.totalQuestions || 0;
+        }
+      });
+    });
+
+    // Count today's games played
+    const GameSession = require('../game/gameSession.model');
+    const gamesPlayedToday = await GameSession.countDocuments({
+      user: userId,
+      completedAt: { $gte: startOfToday },
+    });
+
+    const missions = [
+      {
+        id: 'mission_learn',
+        title: 'Complete 1 Learn Lesson',
+        description: 'Read concepts and answer lesson questions',
+        icon: 'book-outline',
+        color: '#8B5CF6',
+        target: 1,
+        current: Math.min(learnCompletedToday, 1),
+        isCompleted: learnCompletedToday >= 1,
+        targetTab: 'learn',
+      },
+      {
+        id: 'mission_practice',
+        title: 'Solve 10 Practice Drill Questions',
+        description: 'Boost speed and accuracy in practice drills',
+        icon: 'calculator-outline',
+        color: '#3B82F6',
+        target: 10,
+        current: Math.min(practiceQuestionsToday, 10),
+        isCompleted: practiceQuestionsToday >= 10,
+        targetTab: 'practice',
+      },
+      {
+        id: 'mission_game',
+        title: 'Play 1 Arcade Game',
+        description: 'Challenge your mind in Quick Math or Number Match',
+        icon: 'game-controller-outline',
+        color: '#10B981',
+        target: 1,
+        current: Math.min(gamesPlayedToday, 1),
+        isCompleted: gamesPlayedToday >= 1,
+        targetTab: 'game',
+      },
+    ];
+
+    const allMissionsCompleted = missions.every((m) => m.isCompleted);
+    const missionRewardClaimedToday =
+      user.lastDailyRewardClaimed && new Date(user.lastDailyRewardClaimed) >= startOfToday;
+
+    // 3. 7-Day Weekly Activity
+    const weeklyActivity = [];
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+      const dayEnd = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59);
+
+      let dayQuestions = 0;
+      (progress?.practiceLevelProgress || []).forEach((plp) => {
+        (plp.attempts || []).forEach((att) => {
+          if (att.completedAt && new Date(att.completedAt) >= dayStart && new Date(att.completedAt) <= dayEnd) {
+            dayQuestions += att.totalQuestions || 0;
+          }
+        });
+      });
+
+      weeklyActivity.push({
+        day: dayNames[d.getDay()],
+        date: d.toISOString().split('T')[0],
+        isToday: i === 0,
+        isActive: dayQuestions > 0 || (i === 0 && (learnCompletedToday > 0 || gamesPlayedToday > 0)),
+        questionsCount: dayQuestions,
+      });
+    }
+
+    // 4. Daily Educational Math Fact
+    const MATH_FACTS = [
+      {
+        title: 'Shapes Around Us',
+        fact: 'A triangle has exactly 3 sides and 3 corners. Triangles are the strongest shape in architecture!',
+        icon: 'shapes-outline',
+        color: '#EC4899',
+      },
+      {
+        title: 'The Magic of Zero',
+        fact: 'Zero means nothing, but when you put it after a number, it makes it 10 times bigger!',
+        icon: 'sparkles-outline',
+        color: '#8B5CF6',
+      },
+      {
+        title: 'Number Pairs',
+        fact: 'Even numbers always make matching pairs (2, 4, 6, 8, 10). Odd numbers always have one left over!',
+        icon: 'ribbon-outline',
+        color: '#3B82F6',
+      },
+      {
+        title: 'Telling Time',
+        fact: 'A clock face is a circle with 12 hours. When the big hand points to 12, it is exactly on the hour!',
+        icon: 'time-outline',
+        color: '#06B6D4',
+      },
+      {
+        title: 'Big & Small Dimensions',
+        fact: 'Length is how long something is, while height is how tall something reaches upwards!',
+        icon: 'resize-outline',
+        color: '#10B981',
+      },
+    ];
+    const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
+    const dailyMathFact = MATH_FACTS[dayOfYear % MATH_FACTS.length];
+
+    // 5. Total curriculum stats
+    const totalTopicsCount = grade ? await Topic.countDocuments({ grade: grade._id, isPublished: true }) : 0;
+    const completedTopicsCount = progress?.stats?.topicsCompleted || 0;
+
+    return {
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        xp: user.xp || 0,
+        streak: user.streak || progress?.stats?.currentStreak || 1,
+      },
+      grade: grade
+        ? {
+            _id: grade._id,
+            name: grade.name,
+            number: grade.number,
+            icon: grade.icon,
+            color: grade.color,
+          }
+        : null,
+      continueLesson,
+      dailyMissions: {
+        missions,
+        allCompleted: allMissionsCompleted,
+        rewardClaimed: !!missionRewardClaimedToday,
+        bonusXp: 50,
+      },
+      weeklyActivity,
+      dailyMathFact,
+      curriculumProgress: {
+        completedTopics: completedTopicsCount,
+        totalTopics: totalTopicsCount,
+        overallAccuracy: progress?.stats?.overallAccuracy || 100,
+        totalQuestionsAnswered: progress?.stats?.totalQuestionsAnswered || 0,
+      },
+    };
+  }
+
+  /**
+   * Claim daily mission bonus XP
+   */
+  async claimDailyMissionReward(userId) {
+    const user = await User.findById(userId);
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    if (user.lastDailyRewardClaimed && new Date(user.lastDailyRewardClaimed) >= startOfToday) {
+      throw ApiError.badRequest('Daily mission bonus has already been claimed today');
+    }
+
+    const bonusXp = 50;
+    user.xp = (user.xp || 0) + bonusXp;
+    user.lastDailyRewardClaimed = new Date();
+    await user.save();
+
+    return {
+      bonusXp,
+      newTotalXp: user.xp,
+      message: '🎉 Claimed +50 XP Daily Mission Bonus!',
+    };
+  }
 }
 
 module.exports = new ProgressService();

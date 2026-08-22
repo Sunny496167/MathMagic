@@ -28,6 +28,8 @@ export const ENDPOINTS = {
   },
   PROGRESS: {
     TREE: '/progress',
+    HOME_DASHBOARD: '/progress/home-dashboard',
+    CLAIM_DAILY_MISSION: '/progress/daily-missions/claim',
     ANSWER_LEARN: (exerciseId: string) => `/progress/exercises/${exerciseId}/answer`,
     COMPLETE_LEARN: (exerciseId: string) => `/progress/exercises/${exerciseId}/complete`,
     SUBMIT_PRACTICE: (levelId: string) => `/progress/practice-levels/${levelId}/submit`,

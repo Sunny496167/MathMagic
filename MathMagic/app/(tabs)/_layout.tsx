@@ -52,6 +52,20 @@ const TabsLayout = () => {
       <Tabs.Screen
         name="index"
         options={{
+          title: "Home",
+          tabBarIcon: ({ color, size }) => <Ionicons name="home" size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="learn"
+        options={{
+          title: "Learn",
+          tabBarIcon: ({ color, size }) => <Ionicons name="book" size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="practice"
+        options={{
           title: "Practice",
           tabBarIcon: ({ color, size }) => <Ionicons name="calculator" size={size} color={color} />,
         }}
@@ -61,13 +75,6 @@ const TabsLayout = () => {
         options={{
           title: "Game",
           tabBarIcon: ({ color, size }) => <Ionicons name="game-controller" size={size} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="learn"
-        options={{
-          title: "Learn",
-          tabBarIcon: ({ color, size }) => <Ionicons name="book" size={size} color={color} />,
         }}
       />
       <Tabs.Screen

@@ -49,6 +49,24 @@ class ProgressController {
       next(error);
     }
   };
+
+  getHomeDashboard = async (req, res, next) => {
+    try {
+      const data = await progressService.getHomeDashboard(req.user._id);
+      return ApiResponse.success(res, 'Home dashboard data fetched', data);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  claimDailyMissionReward = async (req, res, next) => {
+    try {
+      const result = await progressService.claimDailyMissionReward(req.user._id);
+      return ApiResponse.success(res, result.message, result);
+    } catch (error) {
+      next(error);
+    }
+  };
 }
 
 module.exports = new ProgressController();
