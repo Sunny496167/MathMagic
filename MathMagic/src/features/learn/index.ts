@@ -1,5 +1,13 @@
 export * from './types/learn.types';
-export * from './constants/lessonsData';
-export * from './hooks/useLessonProgress';
+export * from './services/learnService';
+export * from './hooks/useLearnCurriculum';
+export * from './hooks/useExercisePlayer';
+export * from './components/TopicCard';
+export * from './components/ExerciseCard';
+export * from './components/ContentBlockRenderer';
+export * from './components/QuestionPlayer';
+export * from './components/QuestionFeedback';
+export * from './components/ExerciseCompleteModal';
+export * from './components/ExerciseDetailModal';
 export * from './LearnScreen';
 export { default } from './LearnScreen';
